@@ -22,6 +22,7 @@ import * as T from '../data/tuning';
 import { clamp, sign } from '../util/math';
 import type { Rect } from '../util/math';
 import type { Rng } from '../util/rng';
+import type { EnemyDef } from '../data/enemies';
 
 export type Team = 'player' | 'enemy' | 'ally';
 
@@ -80,6 +81,8 @@ export interface Intent {
   guardHeld: boolean;
   heavyHeld: boolean;
   dashPressed: boolean;
+  /** Arah hadap yang diminta saat diam (AI menghadap lawan). */
+  face?: 1 | -1;
   /** Tekanan tombol (tepi) pada tick ini. */
   presses: readonly BufferedAction[];
 }
@@ -156,6 +159,10 @@ export class Fighter {
   flashTicks = 0;
   invulnTicks = 0;
   removed = false;
+  /** Arah masuk dari luar layar (1 = ke kanan, -1 = ke kiri); 0 = sudah di dalam arena. */
+  entering: -1 | 0 | 1 = 0;
+  /** Data musuh (nama, uang, fase) bila ini musuh. */
+  enemyDef?: EnemyDef;
 
   move: MoveDef | null = null;
   charged = false;
@@ -216,6 +223,9 @@ export class Fighter {
     const raw = this.anim.start + Math.floor(this.anim.tick / TICKS_PER_FRAME);
     return this.anim.loop ? raw % n : Math.min(n - 1, raw);
   }
+  get animTick(): number {
+    return this.anim.tick;
+  }
   get animDone(): boolean {
     return (
       !this.anim.loop &&
@@ -230,7 +240,7 @@ export class Fighter {
   }
 
   isInvulnerable(): boolean {
-    if (this.invulnTicks > 0) return true;
+    if (this.invulnTicks > 0 || this.entering !== 0) return true;
     if (this.sm.is('knockback', 'down', 'getup', 'ko', 'cutscene')) return true;
     return isInvulnFrame(this.anim.name, this.animFrame) && this.sm.is('counter', 'dodge');
   }
@@ -307,7 +317,8 @@ export class Fighter {
         break;
     }
     this.applyVelocity();
-    this.clampToBounds();
+    if (this.entering !== 0) this.stepEntering();
+    else this.clampToBounds();
     this.advanceAnim();
     this.syncView();
   }
@@ -349,12 +360,14 @@ export class Fighter {
       this.settling = false;
       this.sm.go('walk', 'move');
       this.play(ANIM.walk, { loop: true });
-      if (intent.moveX !== 0) this.facing = intent.moveX;
+      if (intent.face) this.facing = intent.face;
+      else if (intent.moveX !== 0) this.facing = intent.moveX;
       const sp = T.WALK_SPEED * this.stats.speed;
       this.x += intent.moveX * sp;
       this.y += intent.moveY * T.DEPTH_SPEED * this.stats.speed;
       return;
     }
+    if (intent.face) this.facing = intent.face;
     this.sm.go('idle', 'stop');
     if (this.settling) {
       if (this.animDone) this.settling = false;
@@ -898,6 +911,18 @@ export class Fighter {
       return;
     }
     this.x += this.vx;
+  }
+
+  /** Berjalan masuk dari luar layar sampai berada di dalam batas arena. */
+  private stepEntering(): void {
+    const b = this.host.bounds;
+    const dir = this.entering;
+    if (dir === 0) return;
+    this.facing = dir;
+    this.x += dir * T.WALK_SPEED * 1.4 * this.stats.speed;
+    this.play(ANIM.walk, { loop: true });
+    if (this.x >= b.minX + 16 && this.x <= b.maxX - 16) this.entering = 0;
+    this.y = clamp(this.y, b.minY, b.maxY);
   }
 
   private clampToBounds(): void {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { findInvalidChars, isValidGameText, sanitizeText, textWidth, wrapText } from '../../src/util/text';
+import {
+  findInvalidChars,
+  formatMoney,
+  isValidGameText,
+  sanitizeText,
+  textWidth,
+  wrapText,
+} from '../../src/util/text';
 
 describe('aturan teks game', () => {
   it('huruf kecil dinyatakan tidak valid', () => {
@@ -28,5 +35,12 @@ describe('aturan teks game', () => {
     expect(wrapText('SATU DUA TIGA EMPAT', 9)).toEqual(['SATU DUA', 'TIGA', 'EMPAT']);
     expect(wrapText('A\nB', 10)).toEqual(['A', 'B']);
     expect(wrapText('KATAPANJANGSEKALI', 6)).toEqual(['KATAPA', 'NJANGS', 'EKALI']);
+  });
+  it('formatMoney memakai titik ribuan dan karakter yang valid', () => {
+    expect(formatMoney(0)).toBe('RP 0');
+    expect(formatMoney(1500)).toBe('RP 1.500');
+    expect(formatMoney(1234567)).toBe('RP 1.234.567');
+    expect(formatMoney(-5)).toBe('RP 0');
+    expect(isValidGameText(formatMoney(98765))).toBe(true);
   });
 });

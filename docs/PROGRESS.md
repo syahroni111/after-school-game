@@ -20,7 +20,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M1 — Pipeline aset
 - [x] M2 — Penampil animasi & teks piksel
 - [x] M3 — Pemain & pertarungan inti
-- [ ] M4 — Musuh & AI
+- [x] M4 — Musuh & AI
 - [ ] M5 — Stage, transisi, waktu & cuaca, Game Over
 - [ ] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
 - [ ] M7 — Hub, Kantin, Dojo, Peta, Arsip
@@ -79,6 +79,20 @@ Keputusan M3:
 - Stagger geser (slide) hanya pada pukulan pertama kombo (0,35 px/tick meluruh) supaya rantai kombo tetap menyambung; maju-dash membawa momentum ke pukulan lurus dash (14 tick).
 - Frame animasi dikendalikan logika (tick), hitstop membekukan semuanya termasuk animasi karakter; efek Phaser tetap jalan.
 - Prettier dijalankan sekali pada seluruh kode (print width 110).
+
+## M4 — selesai
+Rencana: `AttackDirector` (token + slot mengitari), `WaveDirector` (maks. 4 di layar, bos saat kroco ≤ 1), data `enemies.ts` (15 musuh/bos) + `difficulty.ts`, `EnemyBrain` (mengitari → mendekat → menyerang rencana; reaksi bertahan/menghindar/tangkis; telegraph merah untuk serangan berat), `Hud`, scene `Stage` (arena terkunci, LANJUT, uang, fase bos), `Profile`/`GameState`.
+- [x] Unit: `AttackDirector` (token, cooldown, timeout), `WaveDirector` (batas 4, bos menunggu), data musuh, dan **simulasi 3600 tick, 4 musuh vs pemain di tiga kesulitan: pemegang token dan penyerang aktif tidak pernah melebihi 1/2/3**. Total unit 127 lulus.
+- [x] E2E dengan bot yang bermain lewat keyboard nyata: layar `test` (3 kroco + Dash + bos Jaka) dimenangkan; aturan bos masuk saat kroco ≤ 1 terverifikasi; LANJUT muncul hanya setelah semua kalah; layar `kecil` bisa dikalahkan (overlay KALAH). Screenshot: `M4_fight.png`, `M4_clear.png` (KO bos: starburst + garis fokus + vinyet, marker LANJUT, bar bos JAKA), `M4_result.png`, `M4_lose.png`.
+- [x] Performa: 56–58 FPS di Chrome headless (WebGL software/SwiftShader, 4–5 petarung + efek), ±51 FPS saat Playwright ikut menembak `evaluate` tiap 70 ms. Belum diprofil di GPU nyata; target 60 FPS dicek lagi di M9.
+
+Keputusan M4:
+- Basis waktu AI = `world.tickCount` (bukan tick petarung) supaya sama dengan `AttackDirector`; tick petarung berhenti saat hitstop, sehingga basis berbeda membuat token kedaluwarsa sebelum waktunya (ditemukan oleh test simulasi).
+- Marker LANJUT memakai `penanda_tujuan` (cincin sasaran beranimasi) + teks "LANJUT" berkedip. Font tidak punya panah dan menggambar panah dilarang (CLAUDE.md §8: hanya persegi/overlay), jadi tanpa glyph panah.
+- Bar "darah sementara" Dorongan Semangat digambar dengan `bar_kesehatan_rival` (merah tua) di segmen yang bisa pulih, karena `bar_kesehatan_setengah` di paket ternyata bar yang terisi separuh, bukan gaya khusus. Papan nama (`papan_nama_*`) memuat nama sekolah, jadi nama musuh ditulis sebagai teks di bawahnya.
+- Bos: HP bos selalu tampil di panel kanan; kroco menampilkan bar sesaat setelah dipukul. Fase bos (Arga marah, Haris memanggil suruhan dan gelap) ada di data `phases` dan diproses `Stage.checkPhases`.
+- Stage sementara menampilkan overlay MENANG/KALAH/JEDA berlatar gelap. Layar Hasil, Jeda, dan Game Over penuh ada di M5.
+- KO dihitung saat pukulan penentu (`stats.kos`), bukan saat musuh selesai berbaring.
 
 ## Masalah terbuka
 - (belum ada)

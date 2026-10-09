@@ -4,6 +4,8 @@ import { Boot } from './scenes/Boot';
 import { Preload } from './scenes/Preload';
 import { AnimViewer } from './scenes/dev/AnimViewer';
 import { CombatSandbox } from './scenes/dev/CombatSandbox';
+import { Stage } from './scenes/Stage';
+import { input } from './systems/InputManager';
 
 const BLOCKED_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
 
@@ -40,7 +42,8 @@ function start(): void {
     if (BLOCKED_KEYS.has(e.code)) e.preventDefault();
   });
 
-  const game = new Phaser.Game(buildGameConfig([Boot, Preload, AnimViewer, CombatSandbox]));
+  input.attach();
+  const game = new Phaser.Game(buildGameConfig([Boot, Preload, AnimViewer, CombatSandbox, Stage]));
   applyZoom(game, host);
   window.addEventListener('resize', () => applyZoom(game, host));
   document.addEventListener('fullscreenchange', () => applyZoom(game, host));

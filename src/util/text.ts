@@ -57,3 +57,10 @@ export function wrapText(text: string, maxChars: number): string[] {
   }
   return lines;
 }
+
+/** Format Rupiah dengan titik ribuan, memakai hanya karakter yang ada di font. */
+export function formatMoney(n: number): string {
+  return `RP ${Math.max(0, Math.floor(n))
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+}

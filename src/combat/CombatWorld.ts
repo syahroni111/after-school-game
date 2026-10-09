@@ -85,7 +85,6 @@ export class CombatWorld implements FighterHost {
       this.slowLeftMs = Math.max(this.slowLeftMs, e.ms);
       this.slowScale = e.scale;
     } else if (e.type === 'hit') this.recordHit(e);
-    else if (e.type === 'ko' && e.fighter.team === 'enemy') this.stats.kos++;
     this.events.push(e);
   }
 
@@ -95,6 +94,7 @@ export class CombatWorld implements FighterHost {
       this.stats.damageDealt += result.damage;
       this.stats.maxCombo = Math.max(this.stats.maxCombo, attacker.combo);
     }
+    if (result.ko && target.team === 'enemy') this.stats.kos++;
     if (target.team !== 'enemy' && result.kind === 'hit') {
       this.stats.hitsTaken++;
       this.stats.damageTaken += result.damage;

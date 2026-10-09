@@ -22,7 +22,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M3 — Pemain & pertarungan inti
 - [x] M4 — Musuh & AI
 - [x] M5 — Stage, transisi, waktu & cuaca, Game Over
-- [ ] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
+- [x] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
 - [ ] M7 — Hub, Kantin, Dojo, Peta, Arsip
 - [ ] M8 — Bab 2 sampai Epilog + konten sampingan
 - [ ] M9 — Audio, pengaturan, polish
@@ -107,6 +107,21 @@ Keputusan M5:
 - Filter sepia (Bab 5) = `postFX.addColorMatrix().sepia()` di WebGL, fallback overlay cokelat 40% + vinyet; belum dipakai sampai M8.
 - UI: `Menu` teks dengan kursor `kursor_pilih`, sorotan persegi, dukungan pointer. Aset `tombol_*`, `menu_jeda`, dan `panel_pengaturan` punya teks/knob yang dipanggang di gambar, jadi hanya dipakai bila labelnya cocok (tombol MULAI/LANJUTKAN/SIMPAN/KEMBALI di Title) atau sebagai latar dengan area yang ditimpa; menu lain memakai `panel_9slice`.
 - Callback layar Hasil/Game Over: scene menghentikan dirinya sebelum memanggil callback (ditemukan saat e2e: scene lama tetap aktif di atas scene baru bila tidak dihentikan).
+
+## M6 — selesai
+Rencana: `SaveSystem` + `Settings`, perintah cutscene bertipe + pelaksana (`Cutscene.ts`) + `CutsceneHost` (aktor, dialog, gerak, judul, petunjuk tutorial), `DialogBox` (potret, ketik 40 cps), integrasi di `Stage` (skrip `before` / `during` / `after`), `ChapterRunner`, scene Title/MainMenu/SaveSelect/Credits, validator konten, tulis Prolog dan Bab 1.
+- [x] **Prolog → Bab 1 bisa dimainkan dari menu sampai tersimpan.** E2E bot (`?debug=1&god=1&fast=1&power=8`) memainkan 3 layar Prolog + 4 layar Bab 1 (termasuk bos Jaka dan Rendy), layar Hasil, lalu kembali ke menu; slot simpan berisi bab `ch02`, flag `prolog_selesai`/`ch01_selesai`, jurus Tangkis + Serangan Balik, Dimas terbuka, uang > 3.000. E2E kedua (tanpa cheat): menu → Mulai Baru → slot → kesulitan → kartu judul → dialog pertama dengan potret.
+- [x] `validate-content` memeriksa semua teks bab (karakter font, ≤ 3 baris pada lebar kotak dialog), semua key tokoh/animasi/stage/musuh/sfx/lagu/unlock, id layar unik, dan flag yang dibaca tetapi tidak pernah diset (gagal bila ada pelanggaran; 17 test negatif/positif). Total unit 184 lulus.
+- [x] Screenshot: `M6_title.png`, `M6_mainmenu.png`, `M6_saveselect.png`, `M6_dialog_narasi.png`, `M6_dialog_potret.png`, `M6_halaman_dialog_kanan.png` (potret kecil dari sheet `_ekspresi` untuk Wawan), `M6_halaman_hint.png` (petunjuk tutorial), `M6_result_*.png`.
+
+Keputusan M6:
+- **Tutorial interaktif lewat skrip `during` + `hint` + `waitFor`** (gerak, pukul, kombo 3, bertahan, tangkis, hindar). Syarat dipantau dari aksi pemain (bukan waktu). Layar tanpa musuh yang punya `during` menahan marker LANJUT sampai skrip selesai; layar bermusuh membatalkan `during` saat arena bersih.
+- **Tampilan dialog**: kotak `kotak_dialog_9slice` di bawah, potret 96×96 di bingkai yang menonjol ke atas (kiri atau kanan menurut posisi pembicara; East Block memakai bingkai merah). Tokoh tanpa potret: wajah dari sheet `_ekspresi` (frame depan, dipotong 32×32) di `bingkai_potret_kecil`. Maks. 3 baris; lebar teks dihitung dari kotak (56 karakter dengan potret, 74 tanpa); halaman ekstra otomatis bila lebih. Aktor cutscene ditempatkan di y 180–196 agar tubuhnya tetap terlihat di atas kotak dialog (y ≥ 200). Skip: tahan K (back) mempercepat dan melewati; Enter/J/E melanjutkan; klik juga melanjutkan.
+- **Judul**: sampul 240×135 di-skala ×2 (bulat). Teks bawaan "PIXEL ACTION ASSET PACK" ditimpa persegi warna + subjudul "JEJAK TIGA SEKOLAH" (diizinkan CLAUDE.md §8: persegi overlay).
+- `DialogueOverlay` sebagai scene terpisah **tidak dibuat**: `DialogBox` adalah komponen yang dimiliki scene mana pun (Stage sekarang, Hub di M7). Fungsinya sama dan lebih sederhana (satu kali penanganan input per frame).
+- **Cerita**: Raka murid pindahan (alasan pemain belajar sejarah tiga sekolah dari Laras dan Pak Hendra); Dimas sahabat sejak SMP; Jaka mengutip "kata Bang Haris, North Hall yang memulai" (benih manipulasi); Rendy menyebut "disuruh senior". Piala bernama PIALA PANJI (dipakai Bab 2).
+- **Simpan**: `afterschool.save.v1.{0,1,2}` + `afterschool.settings.v1`; akses dibungkus try/catch; jika `localStorage` tak tersedia game jalan tanpa slot dan menampilkan "TIDAK BISA MENYIMPAN". Simpan otomatis di akhir tiap layar dan bab. Data lama dimigrasi/dilengkapi oleh `migrateProfile`; data rusak/versi lebih baru ditolak tanpa crash.
+- **Cheat debug** (`?debug=1`): `god=1` (kebal), `fast=1` (dialog dan gerak cutscene cepat), `power=N` (damage pemain ×N), `chapter=ch02&step=0` (lompat; efek bab dilewati diterapkan oleh `applyScriptEffects`), `money=N`.
 
 ## Masalah terbuka
 - (belum ada)

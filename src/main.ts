@@ -8,7 +8,11 @@ import { DebugMenu } from './scenes/dev/DebugMenu';
 import { GameOver } from './scenes/GameOver';
 import { Pause } from './scenes/Pause';
 import { Result } from './scenes/Result';
+import { Credits } from './scenes/Credits';
+import { MainMenu } from './scenes/MainMenu';
+import { SaveSelect } from './scenes/SaveSelect';
 import { Stage } from './scenes/Stage';
+import { Title } from './scenes/Title';
 import { input } from './systems/InputManager';
 
 const BLOCKED_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
@@ -48,7 +52,7 @@ function start(): void {
 
   input.attach();
   const game = new Phaser.Game(
-    buildGameConfig([Boot, Preload, AnimViewer, CombatSandbox, DebugMenu, Stage, Pause, Result, GameOver]),
+    buildGameConfig([Boot, Preload, Title, MainMenu, SaveSelect, Credits, Stage, Pause, Result, GameOver, AnimViewer, CombatSandbox, DebugMenu]),
   );
   applyZoom(game, host);
   window.addEventListener('resize', () => applyZoom(game, host));

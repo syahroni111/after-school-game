@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
+import { audio } from '../audio/AudioBus';
 import { AttackDirector } from '../combat/AttackDirector';
 import { CombatWorld } from '../combat/CombatWorld';
 import type { Controller, WorldStats } from '../combat/CombatWorld';
 import type { WorldEvent } from '../combat/events';
 import { LOGICAL_W } from '../config';
 import { characterName } from '../data/characters';
+import type { WaitCond } from '../data/cutscene';
 import { DIFFICULTY } from '../data/difficulty';
 import type { Difficulty } from '../data/difficulty';
 import { enemyDef } from '../data/enemies';
@@ -12,13 +14,19 @@ import { WALK_AREA_Y } from '../data/assetIndex';
 import { TEST_SCREENS } from '../data/testScreens';
 import { stageLabel } from '../util/text';
 import type { ScreenDef, Weather } from '../data/stages';
+import { FighterActor } from '../entities/Actor';
+import type { Actor } from '../entities/Actor';
 import { spawnEnemy } from '../entities/Enemy';
 import type { EnemyBrain } from '../entities/EnemyBrain';
-import { ALL_UNLOCKED, Fighter } from '../entities/Fighter';
+import { ALL_UNLOCKED, Fighter, IDLE_INTENT } from '../entities/Fighter';
 import { PlayerController } from '../entities/Player';
 import { SpriteView } from '../entities/SpriteView';
 import { Backdrop } from '../systems/Backdrop';
 import { CombatPresenter } from '../systems/CombatPresenter';
+import { runCutscene } from '../systems/Cutscene';
+import type { CutsceneControl } from '../systems/Cutscene';
+import { SceneCutsceneHost } from '../systems/CutsceneHost';
+import { debug } from '../systems/Debug';
 import { EffectPool } from '../systems/EffectPool';
 import { game } from '../systems/GameState';
 import { input } from '../systems/InputManager';
@@ -31,6 +39,7 @@ import type { SpawnDef } from '../systems/WaveDirector';
 import { Hud } from '../ui/Hud';
 import type { HudTarget } from '../ui/Hud';
 import { PixelText } from '../ui/PixelText';
+import { flushToasts } from '../ui/Toast';
 import { Rng } from '../util/rng';
 
 export interface StageResult {
@@ -51,19 +60,23 @@ export interface StageInit {
   stage?: string;
   weather?: string;
   enemies?: string;
-  onDone?: (r: StageResult) => void;
-  onQuit?: () => void;
+  onDone?: (r: StageResult, from: Phaser.Scene) => void;
+  onQuit?: (from: Phaser.Scene) => void;
+  /** Lewati cutscene pembuka (dipakai saat mengulang setelah kalah). */
+  skipIntro?: boolean;
   /** Alat dev: buka semua jurus / kesulitan dari URL. */
   unlock?: string;
   diff?: string;
 }
 
-type StageState = 'fight' | 'clear' | 'exit' | 'over';
+type StageState = 'intro' | 'fight' | 'outro' | 'clear' | 'exit' | 'over';
+type Track = Record<WaitCond, number>;
 
 const PLAYER_START_X = 60;
 const EXIT_X = 458;
 const TARGET_TICKS = 240;
 const WEATHERS: readonly string[] = ['cerah', 'berawan', 'hujan', 'sore', 'malam'];
+const newTrack = (): Track => ({ move: 0, hit: 0, combo: 0, guard: 0, parry: 0, dodge: 0, counter: 0, special: 0, dash: 0 });
 
 /** Layar dev dari parameter URL: stage apa pun, cuaca apa pun, dengan atau tanpa musuh. */
 export function debugScreen(stage: string, weather?: string, enemies = false): ScreenDef {
@@ -76,11 +89,11 @@ export function debugScreen(stage: string, weather?: string, enemies = false): S
   };
 }
 
-/** Satu layar pertarungan: arena terkunci, gelombang musuh, bos masuk saat kroco tinggal ≤ 1, lalu LANJUT. */
+/** Satu layar: cutscene pembuka, arena terkunci dengan gelombang musuh, bos masuk saat kroco tinggal ≤ 1, cutscene penutup, LANJUT. */
 export class Stage extends Phaser.Scene {
   world!: CombatWorld;
   player!: Fighter;
-  state: StageState = 'fight';
+  state: StageState = 'intro';
   private screenDef!: ScreenDef;
   private init0!: StageInit;
   private director!: AttackDirector;
@@ -91,6 +104,14 @@ export class Stage extends Phaser.Scene {
   private presenter!: CombatPresenter;
   private hud!: Hud;
   private backdrop?: Backdrop;
+  private host!: SceneCutsceneHost;
+  private actors = new Map<string, Actor>();
+  private ctl: CutsceneControl = { cancelled: false };
+  /** Kontrol terpisah untuk skrip `during` agar bisa dihentikan saat arena bersih. */
+  private duringCtl: CutsceneControl = { cancelled: false };
+  /** Layar tanpa musuh tetapi dengan skrip `during` (tutorial gerak): marker LANJUT menunggu skrip selesai. */
+  private duringFinished = true;
+  private cutsceneActive = false;
   private brains = new Map<Fighter, EnemyBrain>();
   private phasesDone = new Map<Fighter, Set<number>>();
   private extra: SpawnDef[] = [];
@@ -104,6 +125,11 @@ export class Stage extends Phaser.Scene {
   private marker?: Phaser.GameObjects.Sprite;
   private markerText?: PixelText;
   private finished = false;
+  private fightStarted = false;
+  private track: Track = newTrack();
+  private waiters: { cond: WaitCond; base: number; times: number; resolve: () => void }[] = [];
+  private waveWaiter: (() => void) | null = null;
+  private prev = { x: 0, y: 0, move: '', state: '' };
 
   constructor() {
     super('Stage');
@@ -119,11 +145,18 @@ export class Stage extends Phaser.Scene {
           : data.screen;
     if (!screen) throw new Error(`Layar tidak dikenal: ${String(data.screen)}`);
     this.screenDef = screen;
-    this.state = 'fight';
     this.finished = false;
+    this.fightStarted = false;
+    this.cutsceneActive = false;
     this.pauseRequested = false;
+    this.ctl = { cancelled: false };
+    this.duringCtl = { cancelled: false };
+    this.duringFinished = true;
     this.brains.clear();
     this.phasesDone.clear();
+    this.actors.clear();
+    this.waiters = [];
+    this.waveWaiter = null;
     this.extra = [];
     this.seq = 0;
     this.enemyHpTotal = 0;
@@ -131,15 +164,12 @@ export class Stage extends Phaser.Scene {
     this.target = null;
     this.marker = undefined;
     this.markerText = undefined;
+    this.track = newTrack();
     if (import.meta.env.DEV) (window as unknown as { __stage?: Stage }).__stage = this;
 
     this.cameras.main.setBackgroundColor(0x000000);
-    this.cameras.main.fadeIn(200, 0, 0, 0);
-    this.backdrop = new Backdrop(this, screen.stage, {
-      weather: screen.weather,
-      rain: screen.rain,
-      filter: screen.filter,
-    });
+    this.backdrop = new Backdrop(this, screen.stage, { weather: screen.weather, rain: screen.rain, filter: screen.filter });
+    audio.music(screen.music ?? null);
 
     const diff = DIFFICULTY[this.difficulty()];
     const bounds = { minX: 14, maxX: LOGICAL_W - 14, minY: WALK_AREA_Y[0], maxY: WALK_AREA_Y[1] };
@@ -149,7 +179,7 @@ export class Stage extends Phaser.Scene {
     this.wave = new WaveDirector(screen.spawns);
     this.fx = new EffectPool(this);
     this.screenFx = new ScreenFx(this);
-    this.presenter = new CombatPresenter(this.world, this.fx, this.screenFx);
+    this.presenter = new CombatPresenter(this.world, this.fx, this.screenFx, (n) => audio.sfx(n));
 
     const charKey = screen.playerChar ?? game.profile.selectedChar;
     const unlocks = data.unlock === 'all' ? ALL_UNLOCKED : game.profile.moves;
@@ -160,29 +190,155 @@ export class Stage extends Phaser.Scene {
       x: PLAYER_START_X,
       y: 222,
       facing: 1,
-      stats: playerStats(game.profile, charKey),
+      stats: debug.power !== 1 ? { ...playerStats(game.profile, charKey), power: playerStats(game.profile, charKey).power * debug.power } : playerStats(game.profile, charKey),
       unlocks,
       host: this.world,
       view: new SpriteView(this, charKey),
     });
     this.world.add(this.player, this.playerController);
+    this.actors.set('player', new FighterActor('player', this.player));
     if (screen.allyArga) this.spawnAlly('arga');
+    this.prev = { x: this.player.x, y: this.player.y, move: '', state: '' };
 
     this.hud = new Hud(this);
+    flushToasts(this);
+    this.host = new SceneCutsceneHost({
+      scene: this,
+      actors: this.actors,
+      fx: { shake: (n) => this.screenFx.shake(n), flash: (a) => this.screenFx.flash(a) },
+      spawnWave: (s, w) => this.scriptWave(s, w),
+      waitFor: (c, n) => this.scriptWaitFor(c, n),
+    });
     this.events.on(Phaser.Scenes.Events.RESUME, () => input.clear());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.ctl.cancelled = true;
+      this.duringCtl.cancelled = true;
       this.hud.destroy();
       this.backdrop?.destroy();
+      this.host.destroy();
       this.events.off(Phaser.Scenes.Events.RESUME);
     });
+
+    const intro = screen.before && !data.skipIntro ? screen.before : null;
+    if (intro) {
+      this.state = 'intro';
+      this.enterCutscene();
+      this.cameras.main.fadeIn(250, 0, 0, 0);
+      void runCutscene(intro, this.host, this.ctl).then(() => this.afterIntro());
+    } else {
+      this.cameras.main.fadeIn(200, 0, 0, 0);
+      this.afterIntro();
+    }
+  }
+
+  private afterIntro(): void {
+    if (this.ctl.cancelled) return;
+    if (this.screenDef.cutsceneOnly) {
+      this.state = 'exit';
+      this.cameras.main.fadeOut(300, 0, 0, 0);
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.finish(true));
+      return;
+    }
+    this.exitCutscene();
+    for (const [id, a] of [...this.actors]) {
+      if (id !== 'player') {
+        a.destroy();
+        this.actors.delete(id);
+      }
+    }
+    this.state = 'fight';
+    this.fightStarted = true;
+    const during = this.screenDef.during;
+    if (during && !this.init0.skipIntro) {
+      this.duringFinished = this.screenDef.spawns.length > 0;
+      void runCutscene(during, this.host, this.duringCtl).then(() => (this.duringFinished = true));
+    }
+  }
+
+  // ---------- mode cutscene ----------
+  private enterCutscene(): void {
+    this.cutsceneActive = true;
+    this.player.enterCutscene();
+    this.player.playFree('idle_berdiri', true);
+    this.hud.setVisible(false);
+  }
+
+  private exitCutscene(): void {
+    this.cutsceneActive = false;
+    if (this.player.inCutscene) this.player.exitCutscene();
+    this.hud.setVisible(true);
   }
 
   private playerController: Controller = (self) => {
+    if (this.cutsceneActive) return IDLE_INTENT;
     this.playerTicks++;
     const frame = input.sample();
     if (frame.pressed.has('pause')) this.pauseRequested = true;
     return this.controller.intent(frame, self, this.playerTicks);
   };
+
+  // ---------- skrip: gelombang dan tutorial ----------
+  private scriptWave(spawns: readonly SpawnDef[], wait: boolean): Promise<void> {
+    const wasCutscene = this.cutsceneActive;
+    if (wasCutscene) this.exitCutscene();
+    this.fightStarted = true;
+    this.state = 'fight';
+    this.extra.push(...spawns);
+    if (!wait) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      this.waveWaiter = () => {
+        if (wasCutscene && this.state !== 'over') this.enterCutscene();
+        resolve();
+      };
+    });
+  }
+
+  private scriptWaitFor(cond: WaitCond, times: number): Promise<void> {
+    const wasCutscene = this.cutsceneActive;
+    if (wasCutscene) this.exitCutscene();
+    return new Promise<void>((resolve) => {
+      this.waiters.push({
+        cond,
+        base: cond === 'combo' ? 0 : this.track[cond],
+        times,
+        resolve: () => {
+          if (wasCutscene) this.enterCutscene();
+          resolve();
+        },
+      });
+    });
+  }
+
+  private updateTracking(events: WorldEvent[]): void {
+    const p = this.player;
+    if (!this.cutsceneActive) this.track.move += Math.hypot(p.x - this.prev.x, p.y - this.prev.y);
+    this.prev.x = p.x;
+    this.prev.y = p.y;
+    const moveId = p.move?.id ?? '';
+    if (moveId === 'push' && this.prev.move !== 'push') this.track.special++;
+    this.prev.move = moveId;
+    if (p.state === 'dash' && this.prev.state !== 'dash') this.track.dash++;
+    this.prev.state = p.state;
+    for (const e of events) {
+      if (e.type === 'sfx') {
+        if (e.name === 'guard_up') this.track.guard++;
+        else if (e.name === 'dodge') this.track.dodge++;
+      } else if (e.type === 'hit') {
+        if (e.attacker === p && (e.result.kind === 'hit' || e.result.kind === 'guardBreak')) {
+          this.track.hit++;
+          if (e.move.id === 'counter') this.track.counter++;
+        }
+        if (e.target === p && e.result.kind === 'parry') this.track.parry++;
+      }
+    }
+    for (const w of [...this.waiters]) {
+      const ok = w.cond === 'combo' ? p.combo >= w.times : this.track[w.cond] - w.base >= w.times;
+      if (ok) {
+        this.waiters.splice(this.waiters.indexOf(w), 1);
+        w.resolve();
+      }
+    }
+  }
 
   // ---------- spawn ----------
   private difficulty(): Difficulty {
@@ -238,15 +394,22 @@ export class Stage extends Phaser.Scene {
   // ---------- loop ----------
   override update(_time: number, delta: number): void {
     if (this.finished) return;
+    this.host.update(delta);
     if (this.pauseRequested) {
       this.pauseRequested = false;
       this.openPause();
       return;
     }
+    // Dialog di tengah pertarungan membekukan dunia.
+    this.world.paused = this.host.dialog.active && !this.cutsceneActive;
+    if (debug.god && !this.player.dead) this.player.hp = this.player.stats.maxHp;
+
     const steps = this.world.advance(delta);
     this.director.tick(this.world.tickCount);
-    for (let i = 0; i < steps; i++) this.spawnTick();
-    this.handleEvents(this.presenter.flush());
+    if (this.fightStarted) for (let i = 0; i < steps; i++) this.spawnTick();
+    const events = this.presenter.flush();
+    this.handleEvents(events);
+    this.updateTracking(events);
     this.screenFx.update(delta);
     this.checkPhases();
     for (const f of this.world.fighters) (f.view as SpriteView).updateStatus(f);
@@ -266,17 +429,12 @@ export class Stage extends Phaser.Scene {
 
   private handleEvents(events: WorldEvent[]): void {
     for (const e of events) {
-      if (
-        e.type === 'hit' &&
-        e.attacker.team !== 'enemy' &&
-        e.target.team === 'enemy' &&
-        e.result.kind !== 'miss'
-      ) {
+      if (e.type === 'hit' && e.attacker.team !== 'enemy' && e.target.team === 'enemy' && e.result.kind !== 'miss') {
         this.target = e.target;
         this.targetTimer = TARGET_TICKS;
-      } else if (e.type === 'hit' && e.result.ko && e.target.team === 'enemy') {
-        this.onEnemyDown(e.target);
-      } else if (e.type === 'koDone') {
+      }
+      if (e.type === 'hit' && e.result.ko && e.target.team === 'enemy') this.onEnemyDown(e.target);
+      else if (e.type === 'koDone') {
         this.brains.get(e.fighter)?.release(e.fighter);
         this.brains.delete(e.fighter);
         this.phasesDone.delete(e.fighter);
@@ -293,6 +451,7 @@ export class Stage extends Phaser.Scene {
     if (gain > 0) {
       game.profile.money += gain;
       this.fx.floatText(`+${gain}`, f.x, f.y - 56, 0xe8c860);
+      audio.sfx('money');
     }
   }
 
@@ -310,10 +469,13 @@ export class Stage extends Phaser.Scene {
         if (ph.speedMult) f.stats = { ...f.stats, speed: f.stats.speed * ph.speedMult };
         if (ph.screenFx) this.screenFx.screen(ph.screenFx);
         if (ph.say) this.fx.floatText(ph.say, f.x, f.y - 62, 0xe05050);
-        for (const id of ph.spawn ?? [])
-          this.extra.push({ enemy: id, side: this.rng.chance(0.5) ? 'left' : 'right' });
+        for (const id of ph.spawn ?? []) this.extra.push({ enemy: id, side: this.rng.chance(0.5) ? 'left' : 'right' });
       });
     }
+  }
+
+  private fightCleared(): boolean {
+    return this.duringFinished && this.wave.exhausted && this.extra.length === 0 && this.world.aliveEnemies().length === 0;
   }
 
   private updateState(): void {
@@ -323,9 +485,22 @@ export class Stage extends Phaser.Scene {
         this.time.delayedCall(900, () => this.finish(false));
         return;
       }
-      const cleared =
-        this.wave.exhausted && this.extra.length === 0 && this.world.aliveEnemies().length === 0;
-      if (cleared) this.openExit();
+      if (!this.fightStarted || !this.fightCleared()) return;
+      if (this.waveWaiter) {
+        const r = this.waveWaiter;
+        this.waveWaiter = null;
+        r();
+        return;
+      }
+      this.endDuring();
+      if (this.screenDef.after && !this.init0.skipIntro) {
+        this.state = 'outro';
+        this.enterCutscene();
+        void runCutscene(this.screenDef.after, this.host, this.ctl).then(() => {
+          this.exitCutscene();
+          this.openExit();
+        });
+      } else this.openExit();
     } else if (this.state === 'clear') {
       if (this.player.x >= EXIT_X && this.player.canAct) {
         this.state = 'exit';
@@ -335,36 +510,44 @@ export class Stage extends Phaser.Scene {
     }
   }
 
+  /** Arena bersih: hentikan skrip tutorial dan bebaskan penantiannya. */
+  private endDuring(): void {
+    this.duringCtl.cancelled = true;
+    this.host.hintOff();
+    for (const w of this.waiters.splice(0)) w.resolve();
+  }
+
   private openExit(): void {
+    if (this.ctl.cancelled) return;
     this.state = 'clear';
     this.marker = this.add.sprite(LOGICAL_W - 22, 205, 'ui:penanda_tujuan', 0).setDepth(19500);
     this.marker.play('ui:penanda_tujuan:loop');
-    this.markerText = new PixelText(this, LOGICAL_W - 22, 184, 'LANJUT', {
-      color: 0xf6f7fa,
-      origin: 0.5,
-      align: 'center',
-    }).setDepth(19500);
+    this.markerText = new PixelText(this, LOGICAL_W - 22, 184, 'LANJUT', { color: 0xf6f7fa, origin: 0.5, align: 'center' }).setDepth(19500);
   }
 
   // ---------- selesai ----------
   private finish(win: boolean): void {
     if (this.finished) return;
     this.finished = true;
+    this.ctl.cancelled = true;
+    this.duringCtl.cancelled = true;
     const stats = { ...this.world.stats };
     const seconds = stats.ticks / 60;
     const hpMax = this.player.stats.maxHp;
     const hpLeft = Math.max(0, Math.ceil(this.player.hp));
-    const score = win
-      ? scoreOf({
-          damageDealt: stats.damageDealt,
-          enemyHpTotal: this.enemyHpTotal,
-          maxCombo: stats.maxCombo,
-          seconds,
-          parSeconds: parSecondsFor(this.screenDef.spawns.length),
-          hpRatio: hpLeft / hpMax,
-          hitsTaken: stats.hitsTaken,
-        })
-      : 0;
+    const fought = this.screenDef.spawns.length > 0;
+    const score =
+      win && fought
+        ? scoreOf({
+            damageDealt: stats.damageDealt,
+            enemyHpTotal: this.enemyHpTotal,
+            maxCombo: stats.maxCombo,
+            seconds,
+            parSeconds: parSecondsFor(this.screenDef.spawns.length),
+            hpRatio: hpLeft / hpMax,
+            hitsTaken: stats.hitsTaken,
+          })
+        : 0;
     const result: StageResult = {
       win,
       screenId: this.screenDef.id,
@@ -378,12 +561,12 @@ export class Stage extends Phaser.Scene {
     };
     (window as unknown as { __stageResult?: StageResult }).__stageResult = result;
     this.cameras.main.resetFX();
-    if (this.init0.onDone) this.init0.onDone(result);
+    if (this.init0.onDone) this.init0.onDone(result, this);
     else this.debugDone(result);
   }
 
   private quit(): void {
-    if (this.init0.onQuit) this.init0.onQuit();
+    if (this.init0.onQuit) this.init0.onQuit(this);
     else this.scene.start(this.scene.get('DebugMenu') ? 'DebugMenu' : 'Boot');
   }
 
@@ -393,16 +576,7 @@ export class Stage extends Phaser.Scene {
     if (r.win) {
       this.scene.start('Result', {
         title: 'UJI',
-        rows: [
-          {
-            label: r.label,
-            score: r.score,
-            rank: r.rank,
-            damage: r.stats.damageDealt,
-            combo: r.stats.maxCombo,
-            seconds: r.seconds,
-          },
-        ],
+        rows: [{ label: r.label, score: r.score, rank: r.rank, damage: r.stats.damageDealt, combo: r.stats.maxCombo, seconds: r.seconds }],
         money: game.profile.money,
         onContinue: () => this.quit(),
         onRetry: retry,
@@ -411,11 +585,7 @@ export class Stage extends Phaser.Scene {
   }
 
   private openPause(): void {
-    this.scene.launch('Pause', {
-      parent: 'Stage',
-      onRestart: () => this.scene.restart(this.init0),
-      onQuit: () => this.quit(),
-    });
+    this.scene.launch('Pause', { parent: 'Stage', onRestart: () => this.scene.restart(this.init0), onQuit: () => this.quit() });
     this.scene.pause();
   }
 
@@ -449,5 +619,10 @@ export class Stage extends Phaser.Scene {
     const def = t?.enemyDef;
     if (!t || !def) return null;
     return { name: def.name, school: def.school, ratio: Math.max(0, t.hp / t.stats.maxHp), boss: !!def.boss };
+  }
+
+  /** Apakah sedang cutscene (dipakai test dan alat dev). */
+  get inCutscene(): boolean {
+    return this.cutsceneActive;
   }
 }

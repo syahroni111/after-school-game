@@ -1,5 +1,6 @@
 // Stage dan layar pertarungan. 22 stage dari paket aset; varian cuaca/waktu mengikuti ASSET_MAP §3.
 import type { SpawnDef } from '../systems/WaveDirector';
+import type { Cmd } from './cutscene';
 
 export type Weather = 'cerah' | 'berawan' | 'hujan' | 'sore' | 'malam';
 
@@ -74,4 +75,12 @@ export interface ScreenDef {
   noMoney?: boolean;
   /** Batas waktu dalam detik (misi sampingan); kosong = tanpa batas. */
   timeLimit?: number;
+  /** Cutscene sebelum pertarungan dimulai (pemain tidak bisa digerakkan). */
+  before?: readonly Cmd[];
+  /** Skrip yang berjalan bersamaan dengan pertarungan (petunjuk tutorial, dialog di tengah laga). */
+  during?: readonly Cmd[];
+  /** Cutscene setelah semua musuh kalah, sebelum marker LANJUT. */
+  after?: readonly Cmd[];
+  /** Hanya cutscene (tanpa pertarungan dan tanpa marker LANJUT): layar selesai setelah skrip habis. */
+  cutsceneOnly?: boolean;
 }

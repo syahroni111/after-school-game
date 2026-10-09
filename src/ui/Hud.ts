@@ -56,6 +56,7 @@ export class Hud {
   private statusIcons: Phaser.GameObjects.Image[] = [];
   private enemyGroup: Phaser.GameObjects.GameObject[] = [];
   private comboShown = 0;
+  private hidden = false;
 
   constructor(private readonly scene: Phaser.Scene) {
     const img = (x: number, y: number, key: string, group?: Phaser.GameObjects.GameObject[]) => {
@@ -124,6 +125,7 @@ export class Hud {
   }
 
   update(s: HudState): void {
+    if (this.hidden) return;
     this.name.setText(s.name);
     this.emblem.setTexture(`ui:emblem_${SCHOOL_KEY[s.school]}`);
     Hud.crop(this.hpFill, s.hp / s.maxHp);
@@ -149,6 +151,12 @@ export class Hud {
       this.plate.setTexture(`ui:papan_nama_${SCHOOL_KEY[t.school]}`);
       this.bossTag.setVisible(t.boss);
     }
+  }
+
+  setVisible(v: boolean): void {
+    this.hidden = !v;
+    for (const p of this.parts) (p as unknown as Phaser.GameObjects.Components.Visible).setVisible(v);
+    if (v) this.comboShown = -1; // paksa gambar ulang teks kombo
   }
 
   destroy(): void {

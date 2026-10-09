@@ -42,6 +42,13 @@ try {
   }
 
   console.log(`validate-content: ${entries.length} entri manifest diperiksa.`);
+
+  const content = await server.ssrLoadModule('/src/data/validateContent.ts');
+  const chapters = (await server.ssrLoadModule('/src/data/chapters/index.ts')).CHAPTERS;
+  const contentErrors = content.validateAll();
+  for (const e of contentErrors) fail(e);
+  const screens = chapters.reduce((n, c) => n + c.screens.length, 0);
+  console.log(`validate-content: ${chapters.length} bab, ${screens} layar cerita diperiksa (teks, tokoh, animasi, stage, musuh, flag).`);
 } finally {
   await server.close();
 }

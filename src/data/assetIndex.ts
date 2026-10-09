@@ -40,3 +40,11 @@ export const characterKeys = (): string[] =>
 
 export const stageNames = (): string[] =>
   IMAGES.filter((i) => /^stage:[^:]+$/.test(i.key)).map((i) => i.key.slice(6));
+
+/** Sheet karakter yang memuat animasi ini: 'side' (samping), 'fb' (depan/belakang), atau 'expr'. */
+export function animSheet(charKey: string, anim: string): 'side' | 'fb' | 'expr' | undefined {
+  if (sheetByKey.get(sideKey(charKey))?.animations[anim]) return 'side';
+  if (sheetByKey.get(fbKey(charKey))?.animations[anim]) return 'fb';
+  if (sheetByKey.get(exprKey(charKey))?.animations[anim]) return 'expr';
+  return undefined;
+}

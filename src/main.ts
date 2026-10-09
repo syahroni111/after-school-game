@@ -3,6 +3,7 @@ import { LOGICAL_H, LOGICAL_W, computeZoom } from './config';
 import { Boot } from './scenes/Boot';
 import { Preload } from './scenes/Preload';
 import { AnimViewer } from './scenes/dev/AnimViewer';
+import { CombatSandbox } from './scenes/dev/CombatSandbox';
 
 const BLOCKED_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
 
@@ -39,7 +40,7 @@ function start(): void {
     if (BLOCKED_KEYS.has(e.code)) e.preventDefault();
   });
 
-  const game = new Phaser.Game(buildGameConfig([Boot, Preload, AnimViewer]));
+  const game = new Phaser.Game(buildGameConfig([Boot, Preload, AnimViewer, CombatSandbox]));
   applyZoom(game, host);
   window.addEventListener('resize', () => applyZoom(game, host));
   document.addEventListener('fullscreenchange', () => applyZoom(game, host));

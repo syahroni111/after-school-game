@@ -10,7 +10,19 @@ export default defineConfig({
     channel: 'chrome', // Chrome sistem; Playwright 1.64 minta Chromium r1248 yang belum terpasang (tidak mengunduh browser)
     baseURL: 'http://localhost:5273',
     viewport: { width: 960, height: 540 },
-    launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
+    launchOptions: {
+      args: [
+        '--use-gl=angle',
+        '--use-angle=swiftshader',
+        '--enable-unsafe-swiftshader',
+        '--ignore-gpu-blocklist',
+      ],
+    },
   },
-  webServer: { command: 'npm run dev', url: 'http://localhost:5273', reuseExistingServer: false, timeout: 60_000 },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5273',
+    reuseExistingServer: false,
+    timeout: 60_000,
+  },
 });

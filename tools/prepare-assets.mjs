@@ -27,19 +27,26 @@ const UI_SKIP = new Set(['hud_contoh']);
 const WEATHER_RE = /^(.*)_(cerah|berawan|hujan|sore|malam)$/;
 
 function findSource() {
-  const candidates = [process.env.ASSET_SRC, 'D:\\ASET_PIXEL\\AFTER_SCHOOL', path.join(ROOT, 'AFTER_SCHOOL')].filter(Boolean);
+  const candidates = [
+    process.env.ASSET_SRC,
+    'D:\\ASET_PIXEL\\AFTER_SCHOOL',
+    path.join(ROOT, 'AFTER_SCHOOL'),
+  ].filter(Boolean);
   const tried = [];
   for (const dir of candidates) {
     tried.push(dir);
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) continue;
     if (fs.existsSync(path.join(dir, 'metadata.json'))) return dir;
     for (const sub of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (sub.isDirectory() && fs.existsSync(path.join(dir, sub.name, 'metadata.json'))) return path.join(dir, sub.name);
+      if (sub.isDirectory() && fs.existsSync(path.join(dir, sub.name, 'metadata.json')))
+        return path.join(dir, sub.name);
     }
   }
   console.error('GAGAL: metadata.json paket AFTER_SCHOOL tidak ditemukan. Sudah dicoba:');
   for (const t of tried) console.error(`  - ${t}`);
-  console.error('Set env ASSET_SRC ke folder paket (yang berisi metadata.json atau satu subfolder di bawahnya).');
+  console.error(
+    'Set env ASSET_SRC ke folder paket (yang berisi metadata.json atau satu subfolder di bawahnya).',
+  );
   process.exit(1);
 }
 
@@ -53,7 +60,10 @@ const add = (rel, key, group) => {
   if (!allFiles.has(rel)) throw new Error(`File tidak ada di paket: ${rel}`);
   items.push({ rel, key, group });
 };
-const pngsIn = (dir) => [...allFiles].filter((f) => f.startsWith(`${dir}/`) && f.endsWith('.png') && !f.slice(dir.length + 1).includes('/'));
+const pngsIn = (dir) =>
+  [...allFiles].filter(
+    (f) => f.startsWith(`${dir}/`) && f.endsWith('.png') && !f.slice(dir.length + 1).includes('/'),
+  );
 const stem = (rel) => path.posix.basename(rel, '.png');
 
 // Karakter: hanya sheet samping_kanan (kiri = flipX), depan_belakang, dan ekspresi.
@@ -73,7 +83,12 @@ for (const f of pngsIn('13_WEATHER')) {
   else if (m) add(f, `stage:${m[1]}:${m[2]}`, 'weather');
   else throw new Error(`Nama file cuaca tak dikenal: ${f}`);
 }
-for (const dir of ['04_COMBAT_EFFECTS', '04_COMBAT_EFFECTS/kecepatan', '04_COMBAT_EFFECTS/sinematik_480x270', '14_ENVIRONMENT_EFFECTS']) {
+for (const dir of [
+  '04_COMBAT_EFFECTS',
+  '04_COMBAT_EFFECTS/kecepatan',
+  '04_COMBAT_EFFECTS/sinematik_480x270',
+  '14_ENVIRONMENT_EFFECTS',
+]) {
   for (const f of pngsIn(dir)) add(f, `fx:${stem(f)}`, 'fx');
 }
 for (const f of pngsIn('05_NPC')) add(f, `npc:${stem(f)}`, 'npc');
@@ -111,8 +126,18 @@ for (const it of items) {
     const cols = m.columns;
     const expectW = cols * m.frame_w;
     const expectH = Math.ceil(m.count / cols) * m.frame_h;
-    if (w !== expectW || h < expectH) warnings.push(`${it.rel}: PNG ${w}x${h}, metadata mengharapkan ${expectW}x${expectH}`);
-    const e = { key: it.key, path: it.rel, w, h, frameW: m.frame_w, frameH: m.frame_h, columns: cols, count: m.count };
+    if (w !== expectW || h < expectH)
+      warnings.push(`${it.rel}: PNG ${w}x${h}, metadata mengharapkan ${expectW}x${expectH}`);
+    const e = {
+      key: it.key,
+      path: it.rel,
+      w,
+      h,
+      frameW: m.frame_w,
+      frameH: m.frame_h,
+      columns: cols,
+      count: m.count,
+    };
     if (m.origin) e.origin = m.origin;
     if (m.fps) e.fps = m.fps;
     e.animations = m.animations ?? {};
@@ -121,7 +146,8 @@ for (const it of items) {
     const e = { key: it.key, path: it.rel, w, h };
     if (m?.nine_slice) e.nineSlice = m.nine_slice;
     images.push(e);
-    if (m?.glyph_w) font = { key: it.key, glyphW: m.glyph_w, glyphH: m.glyph_h, advance: m.advance, chars: m.chars };
+    if (m?.glyph_w)
+      font = { key: it.key, glyphW: m.glyph_w, glyphH: m.glyph_h, advance: m.advance, chars: m.chars };
   }
 }
 if (!font) throw new Error('Info font (font_piksel_5x7) tidak ditemukan di metadata.');
@@ -177,7 +203,13 @@ const byGroup = {};
 for (const it of items) byGroup[it.group] = (byGroup[it.group] ?? 0) + 1;
 const core = items.length - (byGroup.prop ?? 0);
 console.log(`Disalin ${items.length} file ke public/assets (inti tanpa properti: ${core}).`);
-console.log(`Per grup: ${Object.entries(byGroup).map(([k, v]) => `${k}=${v}`).join(', ')}`);
-console.log(`Manifest: ${sheets.length} spritesheet + ${images.length} gambar -> ${path.relative(ROOT, MANIFEST_OUT)}`);
+console.log(
+  `Per grup: ${Object.entries(byGroup)
+    .map(([k, v]) => `${k}=${v}`)
+    .join(', ')}`,
+);
+console.log(
+  `Manifest: ${sheets.length} spritesheet + ${images.length} gambar -> ${path.relative(ROOT, MANIFEST_OUT)}`,
+);
 for (const w of warnings) console.warn(`PERINGATAN: ${w}`);
 if (warnings.length) process.exitCode = 1;

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { SHEETS, charAnimFrames, characterKeys, hasCharAnim, hasTexture, sideKey, animKeyFor, stageNames } from '../../src/data/assetIndex';
+import {
+  SHEETS,
+  charAnimFrames,
+  characterKeys,
+  hasCharAnim,
+  hasTexture,
+  sideKey,
+  animKeyFor,
+  stageNames,
+} from '../../src/data/assetIndex';
 
 describe('manifest aset', () => {
   it('A01_protagonis:pukulan_kait punya 10 frame', () => {

@@ -32,9 +32,11 @@ export function charAnimFrames(charKey: string, anim: string): readonly number[]
   return undefined;
 }
 
-export const hasCharAnim = (charKey: string, anim: string): boolean => charAnimFrames(charKey, anim) !== undefined;
+export const hasCharAnim = (charKey: string, anim: string): boolean =>
+  charAnimFrames(charKey, anim) !== undefined;
 
 export const characterKeys = (): string[] =>
   SHEETS.filter((s) => s.key.endsWith(':side')).map((s) => s.key.split(':')[1] as string);
 
-export const stageNames = (): string[] => IMAGES.filter((i) => /^stage:[^:]+$/.test(i.key)).map((i) => i.key.slice(6));
+export const stageNames = (): string[] =>
+  IMAGES.filter((i) => /^stage:[^:]+$/.test(i.key)).map((i) => i.key.slice(6));

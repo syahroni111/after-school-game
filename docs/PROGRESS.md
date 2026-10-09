@@ -19,7 +19,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M0 — Fondasi proyek
 - [x] M1 — Pipeline aset
 - [x] M2 — Penampil animasi & teks piksel
-- [ ] M3 — Pemain & pertarungan inti
+- [x] M3 — Pemain & pertarungan inti
 - [ ] M4 — Musuh & AI
 - [ ] M5 — Stage, transisi, waktu & cuaca, Game Over
 - [ ] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
@@ -64,6 +64,21 @@ Keputusan M2:
 - Perilaku root motion: sprite bergeser di dalam frame selama animasi; posisi entitas digeser di akhir animasi (sesuai CLAUDE.md §6). Sprite `jatuh` frame 0 kembali berdiri di titik yang sama dengan akhir `terpental`, jadi tidak ada loncatan.
 - Font: sel 6×7 (glyph 5 + 1 px kosong), warna putih sehingga bisa diwarnai dengan tint. `PixelText` = subclass `BitmapText` (RetroFont), `setText` selalu lewat `sanitizeText`.
 - Frame animasi dikendalikan oleh logika (tick), bukan oleh timer Phaser; animasi Phaser dipakai untuk efek, NPC, dan UI.
+
+## M3 — selesai
+Rencana: simulasi murni dulu (state machine, combo buffer, damage, `Fighter`, `HitSystem`, `CombatWorld`), baru lapisan Phaser (`InputManager`, `PlayerController`, `SpriteView`, `EffectPool`, `ScreenFx`, `CombatPresenter`) dan scene `dev/CombatSandbox` (`?scene=CombatSandbox&mode=still|jab|heavy|guard`).
+- [x] Semua aksi GDD §4.1 berfungsi (diuji unit dan e2e dengan keyboard nyata): gerak 4 arah, kombo 4 hit, berat (tahan = bertenaga), bertahan, tangkis → serangan balik, menghindar mundur/samping, maju selangkah + pukulan lurus dash, pukulan badan (arah belakang + J), Dorongan Semangat (I atau J+K).
+- [x] Test: state machine 21 kasus (≥15), input buffer 6 kasus, damage 8 kasus, input/Player 15 kasus, simulasi Fighter 30 kasus (kombo, kedalaman ±10, parry, kebal saat menghindar, KO non-grafis, root motion, simulasi acak 4000 tick tanpa loncatan >20 px/tick). Total unit 108 lulus.
+- [x] Screenshot `docs/screens/M3_heavy_hit.png` (efek impact + gelombang kejut saat pukulan berat mendarat, simulasi dibekukan oleh `freezeOnHit`) dan `M3_sandbox.png` (musuh jatuh di tanah).
+
+Keputusan M3:
+- **Parry**: menekan Bertahan ≤ 8 tick (133 ms) sebelum serangan mendarat, dan hanya jika Bertahan tidak baru dilepas (<20 tick, anti-spam). Animasi `tangkis` diputar mulai frame 2 (frame jendela 2–5 di `frameData`), `bertahan` dipakai sebagai reaksi saat serangan ditahan, `kuda_kuda_jaga` sebagai tahan diam.
+- **Pukulan berat bertenaga**: wind-up berhenti di frame 5 selama tombol K masih ditahan; ≥ 250 ms tahan = damage ×1,5 dan hitstop lebih panjang. Ketukan cepat tidak ada penundaan (responsif).
+- **Chord J+K** diubah menjadi aksi `special` oleh `PlayerController`; `special` boleh memotong 3 frame pertama serangan lain, jadi urutan J lalu K sedikit terlambat tetap jadi Dorongan.
+- **Root motion**: `applyRoot()` saat animasi selesai; jika animasi dipotong, `commitDrift()` menerapkan pergeseran yang sudah tampil (tabel khusus `terhuyung`: frame 0 = 0, frame 1 = 85%, frame ≥ 2 = 100%). Pukulan beruntun mengulang `terhuyung` dari frame 2 supaya sprite tidak meloncat. Pergeseran sprite terukur dari piksel: terhuyung −6, terpental −18, mundur −10, maju +8 (cocok dengan GDD).
+- Stagger geser (slide) hanya pada pukulan pertama kombo (0,35 px/tick meluruh) supaya rantai kombo tetap menyambung; maju-dash membawa momentum ke pukulan lurus dash (14 tick).
+- Frame animasi dikendalikan logika (tick), hitstop membekukan semuanya termasuk animasi karakter; efek Phaser tetap jalan.
+- Prettier dijalankan sekali pada seluruh kode (print width 110).
 
 ## Masalah terbuka
 - (belum ada)

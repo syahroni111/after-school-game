@@ -27,7 +27,8 @@ export function sanitizeText(text: string): string {
   return out;
 }
 
-export const textWidth = (text: string): number => Math.max(0, text.length * ADVANCE - (ADVANCE - FONT.glyphW));
+export const textWidth = (text: string): number =>
+  Math.max(0, text.length * ADVANCE - (ADVANCE - FONT.glyphW));
 
 /** Bungkus kata ke baris maksimal `maxChars` karakter; '\n' memaksa baris baru. */
 export function wrapText(text: string, maxChars: number): string[] {

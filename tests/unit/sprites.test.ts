@@ -9,7 +9,9 @@ import { SHEETS, sideKey } from '../../src/data/assetIndex';
 import { FRAME_DATA } from '../../src/data/frameData';
 
 const ASSETS = path.resolve(__dirname, '../../public/assets');
-const FIGHTERS = SHEETS.filter((s) => /^char:[AB]\d\d_[a-z_]+:side$/.test(s.key)).map((s) => s.key.split(':')[1] as string);
+const FIGHTERS = SHEETS.filter((s) => /^char:[AB]\d\d_[a-z_]+:side$/.test(s.key)).map(
+  (s) => s.key.split(':')[1] as string,
+);
 const AIRBORNE = new Set(['terpental', 'jatuh']); // beberapa frame memang melayang/berbaring
 const SOLID = 250;
 
@@ -61,13 +63,22 @@ describe.skipIf(!fs.existsSync(ASSETS))('sprite vs frameData (butuh public/asset
 
   it('frame aktif adalah frame lengan paling terentang, dan hitbox menjangkau kepalan', () => {
     const { sheet, img } = loadSheet('A01_protagonis');
-    for (const anim of ['pukulan_cepat', 'pukulan_lurus', 'pukulan_kait', 'pukulan_badan', 'pukulan_berat', 'serangan_balik', 'dorong']) {
+    for (const anim of [
+      'pukulan_cepat',
+      'pukulan_lurus',
+      'pukulan_kait',
+      'pukulan_badan',
+      'pukulan_berat',
+      'serangan_balik',
+      'dorong',
+    ]) {
       const t = FRAME_DATA[anim];
       const list = sheet.animations[anim] as readonly number[];
       const tips = list.map((idx) => frameStat(img, sheet.columns, idx).maxX - 32);
       const best = Math.max(...tips);
       const [a, b] = t?.active as [number, number];
-      for (let f = a; f <= b; f++) expect(tips[f], `${anim} frame ${f} harus terentang`).toBeGreaterThanOrEqual(best - 4);
+      for (let f = a; f <= b; f++)
+        expect(tips[f], `${anim} frame ${f} harus terentang`).toBeGreaterThanOrEqual(best - 4);
       for (const f of [0, 1]) expect(tips[f], `${anim} frame ${f} masih startup`).toBeLessThan(best - 4);
       const hb = t?.hitbox as { x: number; w: number };
       const reach = Math.max(...tips.slice(a, b + 1));
@@ -83,7 +94,10 @@ describe.skipIf(!fs.existsSync(ASSETS))('sprite vs frameData (butuh public/asset
       const first = frameStat(img, sheet.columns, list[0] as number);
       const last = frameStat(img, sheet.columns, list[list.length - 1] as number);
       const shift = (last.minX + last.maxX - first.minX - first.maxX) / 2;
-      expect(Math.abs(shift - (FRAME_DATA[anim]?.rootMotion ?? 0)), `${anim} bergeser ${shift}`).toBeLessThanOrEqual(3);
+      expect(
+        Math.abs(shift - (FRAME_DATA[anim]?.rootMotion ?? 0)),
+        `${anim} bergeser ${shift}`,
+      ).toBeLessThanOrEqual(3);
     }
   });
 });

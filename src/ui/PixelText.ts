@@ -33,7 +33,15 @@ const ALIGN = { left: 0, center: 1, right: 2 } as const;
 /** Teks piksel: otomatis kapital, karakter tak dikenal diganti spasi. Posisi akhir dibulatkan. */
 export class PixelText extends Phaser.GameObjects.BitmapText {
   constructor(scene: Phaser.Scene, x: number, y: number, text: string, opts: PixelTextOptions = {}) {
-    super(scene, Math.floor(x), Math.floor(y), PIXEL_FONT, sanitizeText(text), undefined, ALIGN[opts.align ?? 'left']);
+    super(
+      scene,
+      Math.floor(x),
+      Math.floor(y),
+      PIXEL_FONT,
+      sanitizeText(text),
+      undefined,
+      ALIGN[opts.align ?? 'left'],
+    );
     scene.add.existing(this);
     if (opts.color !== undefined) this.setTint(opts.color);
     if (opts.origin !== undefined) this.setOrigin(opts.origin);

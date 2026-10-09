@@ -64,11 +64,14 @@ export function animTicks(anim: string): number {
 }
 
 /** Frame animasi untuk tick ke-N sejak animasi mulai (berhenti di frame terakhir). */
-export const frameAtTick = (tick: number, frames: number): number => Math.min(frames - 1, Math.floor(tick / TICKS_PER_FRAME));
+export const frameAtTick = (tick: number, frames: number): number =>
+  Math.min(frames - 1, Math.floor(tick / TICKS_PER_FRAME));
 
 const within = (range: readonly [number, number] | undefined, frame: number): boolean =>
   !!range && frame >= range[0] && frame <= range[1];
 
-export const isActiveFrame = (anim: string, frame: number): boolean => within(FRAME_DATA[anim]?.active, frame);
-export const isInvulnFrame = (anim: string, frame: number): boolean => within(FRAME_DATA[anim]?.invuln, frame);
+export const isActiveFrame = (anim: string, frame: number): boolean =>
+  within(FRAME_DATA[anim]?.active, frame);
+export const isInvulnFrame = (anim: string, frame: number): boolean =>
+  within(FRAME_DATA[anim]?.invuln, frame);
 export const isParryFrame = (anim: string, frame: number): boolean => within(FRAME_DATA[anim]?.parry, frame);

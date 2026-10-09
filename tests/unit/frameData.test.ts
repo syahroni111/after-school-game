@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { TICKS_PER_FRAME } from '../../src/config';
 import { charAnimFrames } from '../../src/data/assetIndex';
-import { FRAME_DATA, animTicks, frameAtTick, isActiveFrame, isInvulnFrame, isParryFrame } from '../../src/data/frameData';
+import {
+  FRAME_DATA,
+  animTicks,
+  frameAtTick,
+  isActiveFrame,
+  isInvulnFrame,
+  isParryFrame,
+} from '../../src/data/frameData';
 
 describe('frameData', () => {
   it('satu frame animasi = 5 tick logika', () => {

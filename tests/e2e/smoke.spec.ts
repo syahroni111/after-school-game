@@ -9,7 +9,14 @@ test('M0/M1: canvas 480x270 zoom bulat, aset termuat tanpa 404 atau error konsol
   await page.goto('/');
   const canvas = page.locator('canvas');
   await expect(canvas).toBeVisible();
-  await page.waitForFunction(() => (window as unknown as { __game?: { registry: { get(k: string): unknown } } }).__game?.registry.get('assetsReady') === true, null, { timeout: 30_000 });
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __game?: { registry: { get(k: string): unknown } } }).__game?.registry.get(
+        'assetsReady',
+      ) === true,
+    null,
+    { timeout: 30_000 },
+  );
   await page.waitForTimeout(500);
   const info = await canvas.evaluate((c: HTMLCanvasElement) => ({
     w: c.width,

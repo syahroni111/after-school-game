@@ -5,7 +5,8 @@ import zlib from 'node:zlib';
 export function decodePng(file) {
   const buf = fs.readFileSync(file);
   let pos = 8;
-  let w = 0, h = 0;
+  let w = 0,
+    h = 0;
   const idat = [];
   while (pos < buf.length) {
     const len = buf.readUInt32BE(pos);
@@ -14,7 +15,8 @@ export function decodePng(file) {
     if (type === 'IHDR') {
       w = data.readUInt32BE(0);
       h = data.readUInt32BE(4);
-      if (data[8] !== 8 || data[9] !== 6 || data[12] !== 0) throw new Error(`PNG tidak didukung (harus RGBA 8-bit tanpa interlace): ${file}`);
+      if (data[8] !== 8 || data[9] !== 6 || data[12] !== 0)
+        throw new Error(`PNG tidak didukung (harus RGBA 8-bit tanpa interlace): ${file}`);
     } else if (type === 'IDAT') idat.push(data);
     pos += 12 + len;
   }
@@ -36,7 +38,9 @@ export function decodePng(file) {
       else if (ft === 3) v += (a + b) >> 1;
       else if (ft === 4) {
         const p = a + b - c;
-        const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        const pa = Math.abs(p - a),
+          pb = Math.abs(p - b),
+          pc = Math.abs(p - c);
         v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
       }
       out[rowOut + x] = v & 255;

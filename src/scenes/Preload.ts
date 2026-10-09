@@ -20,7 +20,8 @@ export class Preload extends Phaser.Scene {
     this.load.on('progress', (p: number) => fill.setSize(Math.max(1, Math.floor(BAR_W * p)), BAR_H));
 
     this.load.setPath('assets/');
-    for (const s of SHEETS) this.load.spritesheet(s.key, s.path, { frameWidth: s.frameW, frameHeight: s.frameH });
+    for (const s of SHEETS)
+      this.load.spritesheet(s.key, s.path, { frameWidth: s.frameW, frameHeight: s.frameH });
     for (const i of IMAGES) this.load.image(i.key, i.path);
   }
 

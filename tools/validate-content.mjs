@@ -36,7 +36,8 @@ try {
   for (const s of manifest.SHEETS) {
     const frames = s.columns * Math.floor(s.h / s.frameH);
     for (const [anim, list] of Object.entries(s.animations)) {
-      for (const i of list) if (i < 0 || i >= frames) fail(`${s.key}:${anim} merujuk frame ${i} di luar sheet (${frames})`);
+      for (const i of list)
+        if (i < 0 || i >= frames) fail(`${s.key}:${anim} merujuk frame ${i} di luar sheet (${frames})`);
     }
   }
 

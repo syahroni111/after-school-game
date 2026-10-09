@@ -51,11 +51,18 @@ export class AnimViewer extends Phaser.Scene {
 
     this.add.rectangle(0, 0, LOGICAL_W, LOGICAL_H, 0x1c2846).setOrigin(0, 0);
     this.gfx = this.add.graphics();
-    this.sprite = this.add.sprite(CX, FOOT_Y, sideKey(this.chars[this.charIdx] as string), 0).setOrigin(ORIGIN_X / SIZE, ORIGIN_Y / SIZE).setScale(SCALE);
+    this.sprite = this.add
+      .sprite(CX, FOOT_Y, sideKey(this.chars[this.charIdx] as string), 0)
+      .setOrigin(ORIGIN_X / SIZE, ORIGIN_Y / SIZE)
+      .setScale(SCALE);
     this.info = new PixelText(this, 6, 4, '', { color: 0xf6f7fa });
     this.flags = new PixelText(this, 6, 46, '', { color: 0xe8c860 });
-    new PixelText(this, 6, LOGICAL_H - 24, 'Q/E: KARAKTER  UP/DOWN: ANIMASI  LEFT/RIGHT: FRAME', { color: 0x86b4e8 });
-    new PixelText(this, 6, LOGICAL_H - 14, 'SPASI: PUTAR/JEDA  F: BALIK  H: HITBOX  G: GRID', { color: 0x86b4e8 });
+    new PixelText(this, 6, LOGICAL_H - 24, 'Q/E: KARAKTER  UP/DOWN: ANIMASI  LEFT/RIGHT: FRAME', {
+      color: 0x86b4e8,
+    });
+    new PixelText(this, 6, LOGICAL_H - 14, 'SPASI: PUTAR/JEDA  F: BALIK  H: HITBOX  G: GRID', {
+      color: 0x86b4e8,
+    });
 
     this.setAnim(this.names().indexOf(data.anim ?? 'siap_tempur'));
     if (data.frame !== undefined) {
@@ -154,7 +161,9 @@ export class AnimViewer extends Phaser.Scene {
     this.gfx.clear();
     const left = CX - ORIGIN_X * SCALE;
     if (this.showGrid) {
-      this.gfx.lineStyle(1, 0x34497a, 1).strokeRect(left + 0.5, FRAME_TOP + 0.5, SIZE * SCALE - 1, SIZE * SCALE - 1);
+      this.gfx
+        .lineStyle(1, 0x34497a, 1)
+        .strokeRect(left + 0.5, FRAME_TOP + 0.5, SIZE * SCALE - 1, SIZE * SCALE - 1);
       this.gfx.lineStyle(1, 0xe8c860, 1).lineBetween(left - 40, FOOT_Y, left + SIZE * SCALE + 40, FOOT_Y); // garis tanah y=59
       this.gfx.lineStyle(1, 0x4a6296, 1).lineBetween(CX, FRAME_TOP, CX, FRAME_TOP + SIZE * SCALE); // sumbu origin x=32
     }

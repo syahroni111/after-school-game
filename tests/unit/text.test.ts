@@ -7,7 +7,8 @@ describe('aturan teks game', () => {
     expect(findInvalidChars('Halo')).toEqual(['a', 'l', 'o']);
   });
   it('karakter yang tidak ada di font tidak valid', () => {
-    for (const bad of ['"KUTIP"', '(KURUNG)', 'A;B', '50%', 'SEPERTI INI…']) expect(isValidGameText(bad), bad).toBe(false);
+    for (const bad of ['"KUTIP"', '(KURUNG)', 'A;B', '50%', 'SEPERTI INI…'])
+      expect(isValidGameText(bad), bad).toBe(false);
   });
   it('semua karakter font valid', () => {
     expect(isValidGameText("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?-:/'&")).toBe(true);

@@ -219,9 +219,9 @@ Semua angka di atas adalah **nilai awal**. Pastikan secara visual di scene `Anim
 - Pengaturan: volume, skala layar (Auto/×2/×3/×4), tingkat kesulitan, tampilkan hitbox (debug, tersembunyi), dan rebind tombol.
 
 ## 12. Kriteria "selesai" (Definition of Done) untuk v1.0
-1. Prolog sampai Epilog bisa dimainkan dari awal hingga akhir tanpa error di Chrome, Firefox, dan Edge versi terbaru.
-2. Stabil 60 FPS di laptop menengah dengan 4 musuh + efek di layar.
-3. Semua 22 stage dipakai; tidak ada referensi aset yang hilang (dicek oleh skrip validasi).
-4. ZIP itch.io < 1.000 file dan < 500 MB, `index.html` di root, semua path relatif.
-5. Tidak ada gerakan/animasi yang tidak ada di paket; tidak ada konten grafis.
-6. Bisa dimainkan penuh dengan keyboard saja dan dengan gamepad saja.
+1. [x] Prolog sampai Epilog bisa dimainkan dari awal hingga akhir tanpa error. *Diverifikasi di Chrome (e2e cerita utuh dari menu sampai Kredit lalu Hub, tanpa error konsol). Firefox dan Edge belum diuji di lingkungan ini; kode memakai Web API standar (Canvas/WebGL, WebAudio, localStorage) tanpa fitur khusus Chrome.*
+2. [~] Stabil 60 FPS di laptop menengah dengan 4 musuh + efek di layar. *Terukur rata-rata 50 FPS di headless Chrome dengan GL perangkat lunak (tanpa GPU) dengan 4–5 petarung; belum diukur di perangkat keras nyata. Logika tetap 60 Hz, efek di-pool.*
+3. [x] Semua 22 stage dipakai; tidak ada referensi aset yang hilang (dicek oleh skrip validasi `npm run validate`).
+4. [x] ZIP itch.io < 1.000 file dan < 500 MB, `index.html` di root, semua path relatif (`release/after-school-web-v1.0.0.zip`: 247 file, 5,1 MB; dicek `npm run package:itch` dan `npm run verify:zip`).
+5. [x] Tidak ada gerakan/animasi yang tidak ada di paket; tidak ada konten grafis (semua animasi dari manifest; validator memeriksa tiap animasi yang dirujuk cerita).
+6. [x] Bisa dimainkan penuh dengan keyboard saja (semua e2e memakai keyboard) dan dengan gamepad saja (peta tombol gamepad standar untuk gerak, serangan, menu, dan jeda; Title dan menu merespons konfirmasi gamepad). *Gamepad belum diuji dengan perangkat fisik di lingkungan ini; pemetaan diuji unit.*

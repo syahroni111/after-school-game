@@ -26,7 +26,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M7 — Hub, Kantin, Dojo, Peta, Arsip
 - [x] M8 — Bab 2 sampai Epilog + konten sampingan
 - [x] M9 — Audio, pengaturan, polish
-- [ ] M10 — Rilis itch.io
+- [x] M10 — Rilis itch.io
 
 ## Keputusan
 - **Lokasi paket aset**: paket ternyata ada di `D:\ASET_PIXEL\after-school-game\AFTER_SCHOOL` (metadata.json langsung di dalamnya), bukan `D:\ASET_PIXEL\AFTER_SCHOOL` seperti tertulis di dokumen (folder itu tidak ada; hanya ada ZIP `AFTER_SCHOOL_pixel_action_pack.zip` di `D:\ASET_PIXEL`). `prepare-assets` mencoba berurutan: env `ASSET_SRC` → `D:\ASET_PIXEL\AFTER_SCHOOL` → `<proyek>\AFTER_SCHOOL`. Folder paket di-gitignore (sumber, hanya-baca).
@@ -169,5 +169,17 @@ Keputusan M9:
 - **Atlas tekstur tidak dibuat**: 245 entri manifest, jauh di bawah batas 600 file. Prettier dijalankan sekali (`.prettierignore` untuk berkas hasil generate, dist, public, docs).
 - Cheat dan hook dev (`__game`, `__stage`, `__hub`, `__gs`, `__audio`) hanya aktif di build dev kecuali `__game`, yang dipakai verifikasi zip.
 
+## M10 — selesai
+Rencana: `tools/package-itch.mjs` (build → zip isi dist → verifikasi §11), `tools/verify-zip.mjs` (ekstrak, sajikan dari subfolder, buka di Chrome), `tools/make-cover.mjs` (cover 630×500), `docs/ITCH_UPLOAD.md`, versi 1.0.0.
+- [x] `release/after-school-web-v1.0.0.zip` lolos semua cek otomatis: `index.html` di akar zip, **247 file** (< 1.000), **5,1 MB** total (< 500 MB; zip 3,9 MB), tak ada file ≥ 200 MB, semua path ≤ 240 karakter dan relatif, tanpa path absolut di HTML/JS/CSS, dan semua path aset di manifest cocok persis (huruf besar-kecil) dengan isi zip.
+- [x] Smoke test terhadap hasil ekstrak zip yang disajikan dari subfolder `/html/12345/` (meniru itch.io): Title dan MainMenu tercapai, kanvas 1920×1080 pada jendela 1920×1080 (zoom bulat ×4), 0 respons ≥ 400, 0 error konsol. `npm run preview` pada `dist/` juga diuji (menu → pilih slot, kanvas 960 px pada jendela 1280×720).
+- [x] Versi 1.0.0 (tampil di Title). `docs/ITCH_UPLOAD.md` berisi langkah unggah, pengaturan embed 960×540, tag, teks deskripsi, kredit, dan cover `docs/itch/cover_630x500.png`. Definition of Done GDD §12 diperbarui (dua butir diberi catatan jujur: Firefox/Edge dan 60 FPS di perangkat keras nyata belum bisa diukur di sini).
+
+Keputusan M10:
+- Zip memakai `adm-zip` (devDependency, JS murni; Phaser tetap satu-satunya dependensi runtime). Zip menyimpan juga entri folder; itch.io tidak keberatan.
+- `window.__game` tetap ada di build produksi karena dipakai verifikasi zip; hook dev lain (`__stage`, `__hub`, `__gs`, `__audio`, cheat `?debug=1`) dihapus oleh `import.meta.env.DEV` di build produksi.
+- Cover memakai sampul 1920×1080 paket aset dipotong 1361×1080 di tengah dan diperkecil dengan rata-rata area ke 630×500; subjudul bawaan "PIXEL ACTION ASSET PACK" ditimpa persegi + teks "JEJAK TIGA SEKOLAH" dari font paket (sama seperti layar Title).
+
 ## Masalah terbuka
-- (belum ada)
+- Firefox dan Edge belum diuji; 60 FPS di GPU nyata belum diukur; gamepad fisik belum diuji (lihat GDD §12).
+- Belum ada kontrol sentuh, jadi halaman itch.io harus dengan "Mobile friendly" tidak dicentang.

@@ -1,6 +1,6 @@
 {
   "name": "after-school-game",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "AFTER SCHOOL: Jejak Tiga Sekolah - beat 'em up 2D berbasis cerita (Phaser 3, web/itch.io)",
@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm run test && npm run validate",
-    "package:itch": "node tools/package-itch.mjs"
+    "package:itch": "node tools/package-itch.mjs",
+    "verify:zip": "node tools/verify-zip.mjs"
   },
   "dependencies": {
     "phaser": "3.90.0"

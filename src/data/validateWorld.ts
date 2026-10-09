@@ -1,6 +1,6 @@
 // Validasi data dunia selain bab: Arsip, Kantin/Dojo, hub (NPC dan titik interaksi), Cerita Sekolah.
 import { ARCHIVES, ARCHIVE_IDS } from './archives';
-import { hasCharAnim } from './assetIndex';
+import { hasCharAnim, stageNames } from './assetIndex';
 import { CHAPTERS } from './chapters';
 import type { ChapterDef } from './chapters';
 import { CHARACTERS } from './characters';
@@ -145,9 +145,33 @@ export function validateArchiveCoverage(chapters: readonly ChapterDef[]): string
   return errs;
 }
 
+/** Semua stage di paket harus dipakai: layar cerita, layar misi, atau lokasi hub. */
+export function validateStageCoverage(chapters: readonly ChapterDef[]): string[] {
+  const used = new Set<string>();
+  for (const ch of chapters) for (const sc of ch.screens) used.add(sc.stage);
+  for (const q of SIDE_QUESTS) for (const sc of q.screens) used.add(sc.stage);
+  for (const l of HUB_LOCATIONS) used.add(l.stage);
+  return stageNames()
+    .filter((n) => !used.has(n))
+    .map((n) => `stage tidak dipakai di mana pun: ${n}`);
+}
+
+/** Setiap lokasi hub selain halaman harus dibuka oleh skrip cerita, kalau tidak Cerita Sekolah di sana tak terjangkau. */
+export function validateLocationUnlocks(chapters: readonly ChapterDef[]): string[] {
+  const opened = new Set<string>(['halaman']);
+  for (const ch of chapters) {
+    for (const sc of ch.screens) {
+      for (const script of [sc.before, sc.during, sc.after]) {
+        if (script) walkCmds(script, (c) => c.c === 'unlock' && c.what.startsWith('location:') && opened.add(c.what.slice(9)));
+      }
+    }
+  }
+  return HUB_LOCATIONS.filter((l) => !opened.has(l.id)).map((l) => `lokasi hub tidak pernah dibuka cerita: ${l.id}`);
+}
+
 /** Semua pemeriksaan konten (dipakai tools/validate-content.mjs dan test). */
 export function validateEverything(): string[] {
   const errs = [...validateAll(), ...validateArchives(), ...validateShop(), ...validateHub(), ...validateQuests()];
-  if (CHAPTERS.length >= PLANNED_CHAPTERS.length) errs.push(...validateArchiveCoverage(CHAPTERS));
+  if (CHAPTERS.length >= PLANNED_CHAPTERS.length) errs.push(...validateArchiveCoverage(CHAPTERS), ...validateStageCoverage(CHAPTERS), ...validateLocationUnlocks(CHAPTERS));
   return errs;
 }

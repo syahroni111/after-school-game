@@ -37,7 +37,7 @@ import { ScreenFx } from '../systems/ScreenFx';
 import { WaveDirector } from '../systems/WaveDirector';
 import type { SpawnDef } from '../systems/WaveDirector';
 import { HP_FLOOR_RATIO, HP_REGEN_RATIO, consumeBuffs } from '../systems/Economy';
-import { KUAT_TICKS } from '../data/tuning';
+import { DUET_FULL_HITS, KUAT_TICKS } from '../data/tuning';
 import type { PickupDef } from '../data/stages';
 import { Hud } from '../ui/Hud';
 import type { HudTarget } from '../ui/Hud';
@@ -139,6 +139,9 @@ export class Stage extends Phaser.Scene {
   private pickups: { def: PickupDef; sprite: Phaser.GameObjects.Sprite; icon: Phaser.GameObjects.Sprite }[] = [];
   private timeLeft = Infinity;
   private escortFighter: Fighter | null = null;
+  private ally: Fighter | null = null;
+  /** Meteran Duet Panji: pukulan mendarat sejak duet terakhir. */
+  duetHits = 0;
 
   constructor() {
     super('Stage');
@@ -178,10 +181,12 @@ export class Stage extends Phaser.Scene {
     this.pickups = [];
     this.timeLeft = screen.timeLimit !== undefined ? screen.timeLimit * 60 : Infinity;
     this.escortFighter = null;
+    this.ally = null;
+    this.duetHits = 0;
     if (import.meta.env.DEV) (window as unknown as { __stage?: Stage }).__stage = this;
 
     this.cameras.main.setBackgroundColor(0x000000);
-    this.backdrop = new Backdrop(this, screen.stage, { weather: screen.weather, rain: screen.rain, filter: screen.filter });
+    this.backdrop = new Backdrop(this, screen.stage, { weather: screen.weather, rain: screen.rain, filter: screen.filter, crowd: screen.crowd });
     audio.music(screen.music ?? null);
 
     const diff = DIFFICULTY[this.difficulty()];
@@ -211,7 +216,7 @@ export class Stage extends Phaser.Scene {
     this.world.add(this.player, this.playerController);
     this.actors.set('player', new FighterActor('player', this.player));
     this.applyCarryover(screen);
-    if (screen.allyArga) this.spawnAlly('arga');
+    if (screen.allyArga) this.ally = this.spawnAlly('arga');
     if (screen.escort) this.escortFighter = this.spawnAlly(screen.escort);
     this.buildPickups(screen);
     this.prev = { x: this.player.x, y: this.player.y, move: '', state: '' };
@@ -332,7 +337,10 @@ export class Stage extends Phaser.Scene {
     this.prev.x = p.x;
     this.prev.y = p.y;
     const moveId = p.move?.id ?? '';
-    if (moveId === 'push' && this.prev.move !== 'push') this.track.special++;
+    if (moveId === 'push' && this.prev.move !== 'push') {
+      this.track.special++;
+      this.tryDuet();
+    }
     this.prev.move = moveId;
     if (p.state === 'dash' && this.prev.state !== 'dash') this.track.dash++;
     this.prev.state = p.state;
@@ -453,6 +461,9 @@ export class Stage extends Phaser.Scene {
         this.target = e.target;
         this.targetTimer = TARGET_TICKS;
       }
+      if (this.screenDef.duet && e.type === 'hit' && e.attacker.team !== 'enemy' && e.target.team === 'enemy' && (e.result.kind === 'hit' || e.result.kind === 'guardBreak')) {
+        this.duetHits = Math.min(DUET_FULL_HITS, this.duetHits + 1);
+      }
       if (e.type === 'hit' && e.result.ko && e.target.team === 'enemy') this.onEnemyDown(e.target);
       else if (e.type === 'koDone') {
         this.brains.get(e.fighter)?.release(e.fighter);
@@ -461,6 +472,22 @@ export class Stage extends Phaser.Scene {
         e.fighter.view.destroy();
       }
     }
+  }
+
+  /** Dorongan pemain saat meteran penuh: Arga ikut mendorong bersamaan, dengan efek layar duet. */
+  private tryDuet(): void {
+    const a = this.ally;
+    if (!this.screenDef.duet || this.duetHits < DUET_FULL_HITS || !a || a.dead || a.removed || !a.canAct) return;
+    this.duetHits = 0;
+    const hp = a.hp; // dorongan sekutu tidak memakai HP
+    a.startMove('push');
+    a.hp = hp;
+    a.tempHp = 0;
+    a.tempHits = 0;
+    this.screenFx.screen('kilat_dramatis');
+    this.screenFx.screen('garis_fokus');
+    this.fx.floatText('DUET PANJI', this.player.x, this.player.y - 70, 0xe8c860);
+    audio.sfx('hit_special');
   }
 
   private onEnemyDown(f: Fighter): void {
@@ -683,7 +710,7 @@ export class Stage extends Phaser.Scene {
     if (p.status.kuat > 0) statuses.push('kuat');
     if (p.status.bertahan > 0) statuses.push('bertahan');
     return {
-      name: characterName(p.charKey),
+      name: this.screenDef.playerName ?? characterName(p.charKey),
       school: 'north' as const,
       hp: Math.max(0, Math.ceil(p.hp)),
       maxHp: p.stats.maxHp,
@@ -706,6 +733,7 @@ export class Stage extends Phaser.Scene {
       parts.push(`WAKTU ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`);
     }
     if (s.maxHits !== undefined) parts.push(`KENA ${Math.min(this.world.stats.hitsTaken, s.maxHits + 1)}/${s.maxHits}`);
+    if (s.duet) parts.push(this.duetHits >= DUET_FULL_HITS ? 'DUET PANJI SIAP: J DAN K' : `DUET ${this.duetHits}/${DUET_FULL_HITS}`);
     if (this.escortFighter) parts.push(`KAWAL ${Math.max(0, Math.ceil(this.escortFighter.hp))}`);
     return parts.join('  ');
   }

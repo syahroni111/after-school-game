@@ -4,7 +4,7 @@ import { isSfx, isSong } from '../audio/names';
 import { isValidUnlock, parseUnlock } from '../systems/Progression';
 import { findInvalidChars, wrapText } from '../util/text';
 import { ARCHIVE_IDS } from './archives';
-import { hasCharAnim } from './assetIndex';
+import { hasCharAnim, hasTexture } from './assetIndex';
 import { CHAPTERS } from './chapters';
 import type { ChapterDef } from './chapters';
 import { CHARACTERS } from './characters';
@@ -136,6 +136,9 @@ export function validateScreen(s: ScreenDef, flags?: FlagUse): string[] {
   if (s.label !== undefined) checkText(s.label, `${w} label`, errs);
   if (s.music !== undefined && !isSong(s.music)) errs.push(`${w}: lagu tidak dikenal: ${s.music}`);
   if (s.playerChar !== undefined && !CHARACTERS[s.playerChar]) errs.push(`${w}: tokoh pemain tidak dikenal`);
+  if (s.crowd !== undefined && !hasTexture('npc:formasi:' + s.crowd)) errs.push(w + ': formasi penonton tidak dikenal: ' + s.crowd);
+  if (s.playerName !== undefined) checkText(s.playerName, w + ' playerName', errs);
+  if (s.duet && !s.allyArga) errs.push(w + ': duet butuh allyArga');
   if (s.cutsceneOnly && s.spawns.length > 0) errs.push(`${w}: cutsceneOnly tidak boleh punya musuh`);
   if (s.cutsceneOnly && !s.before) errs.push(`${w}: cutsceneOnly tanpa skrip before`);
   for (const sp of s.spawns) if (!ENEMIES[sp.enemy]) errs.push(`${w}: musuh tidak dikenal: ${sp.enemy}`);

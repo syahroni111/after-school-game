@@ -37,8 +37,8 @@ export class ChapterRunner {
     const p = game.profile;
     const ch = chapterById(p.chapter);
     if (!ch) {
-      queueToast('BERSAMBUNG... TERIMA KASIH SUDAH BERMAIN');
-      from.scene.start('MainMenu');
+      // Cerita sudah tamat: Waktu Bebas adalah rumah pemain.
+      from.scene.start(from.scene.manager.keys.Hub ? 'Hub' : 'MainMenu');
       return;
     }
     const screen = ch.screens[p.step];
@@ -110,12 +110,13 @@ export class ChapterRunner {
 
   private afterChapter(from: Phaser.Scene, ch: ChapterDef): void {
     const hubExists = from.scene.manager.keys.Hub !== undefined;
-    if (ch.hub && hubExists) {
-      from.scene.start('Hub', { location: 'halaman' });
+    if (!ch.next) {
+      // Tamat: kredit bergulir, lalu Waktu Bebas.
+      from.scene.start(from.scene.manager.keys.Credits ? 'Credits' : 'MainMenu', { ending: true, from: hubExists ? 'Hub' : 'MainMenu' });
       return;
     }
-    if (!ch.next) {
-      from.scene.start(from.scene.manager.keys.Credits ? 'Credits' : 'MainMenu', { ending: true });
+    if (ch.hub && hubExists) {
+      from.scene.start('Hub', { location: 'halaman' });
       return;
     }
     this.play(from);

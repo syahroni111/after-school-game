@@ -101,4 +101,10 @@ export interface ScreenDef {
   escort?: string;
   /** Misi gagal bila pemain terkena lebih dari N kali. */
   maxHits?: number;
+  /** Penonton: nama formasi NPC (05_NPC/formasi) sebagai lapisan di atas latar. */
+  crowd?: string;
+  /** Nama pemain di HUD bila bukan nama tokohnya (Bab 5: HENDRA MUDA). */
+  playerName?: string;
+  /** Serangan duet Panji dengan sekutu Arga (Bab 7). */
+  duet?: boolean;
 }

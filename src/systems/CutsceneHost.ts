@@ -14,7 +14,7 @@ import { showToast } from '../ui/Toast';
 import { debug } from './Debug';
 import type { CutsceneHost } from './Cutscene';
 import { game } from './GameState';
-import { applyUnlock } from './Progression';
+import { addArchive, applyUnlock } from './Progression';
 import type { FlagValue } from './Profile';
 import type { SpawnDef } from './WaveDirector';
 
@@ -188,8 +188,7 @@ export class SceneCutsceneHost implements CutsceneHost {
   }
 
   giveArchive(id: string): void {
-    if (!game.profile.archives.includes(id)) {
-      game.profile.archives.push(id);
+    if (addArchive(game.profile, id)) {
       audio.sfx('archive');
       showToast(this.scene(), 'ARSIP SEJARAH BARU', 2600, COLORS.cyan);
     }

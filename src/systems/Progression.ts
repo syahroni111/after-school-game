@@ -1,4 +1,5 @@
 // Membuka jurus, karakter, lokasi, dan misi dari perintah `unlock` cerita (murni, mengubah Profile).
+import { ARCHIVE_IDS } from '../data/archives';
 import { CHARACTERS } from '../data/characters';
 import type { Cmd } from '../data/cutscene';
 import type { Profile } from './Profile';
@@ -79,6 +80,14 @@ export function applyUnlock(p: Profile, what: string): UnlockResult {
   }
 }
 
+/** Menambah arsip (sekali saja). Menyalakan flag arsip_lengkap saat semua arsip terkumpul. Mengembalikan true bila baru. */
+export function addArchive(p: Profile, id: string): boolean {
+  if (p.archives.includes(id)) return false;
+  p.archives.push(id);
+  if (ARCHIVE_IDS.every((a) => p.archives.includes(a))) p.flags.arsip_lengkap = true;
+  return true;
+}
+
 export const hasLocation = (p: Profile, id: string): boolean => p.flags[`loc_${id}`] === true;
 
 /**
@@ -104,7 +113,7 @@ export function applyScriptEffects(p: Profile, cmds: readonly Cmd[]): void {
         p.money += cmd.amount;
         break;
       case 'giveArchive':
-        if (!p.archives.includes(cmd.id)) p.archives.push(cmd.id);
+        addArchive(p, cmd.id);
         break;
       default:
         break;

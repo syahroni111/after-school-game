@@ -326,6 +326,16 @@ export const ENEMIES: Readonly<Record<string, EnemyDef>> = Object.fromEntries(
         id: 'tiara', charKey: 'A06_murid_enerjik', name: 'TIARA', school: 'north', style: 'cepat', hp: 70, power: 0.7, speed: 1.05, guardChance: 0.15, cooldown: [60, 110], ring: 70,
         plans: [{ steps: ['light'], weight: 3 }, { steps: ['light', 'light'], weight: 1 }], money: [0, 0],
       }),
+      // Senior angkatan lama (Bab 5, kilas balik): kroco tanpa uang, dimainkan pemain sebagai Hendra muda.
+      grunt({ id: 'senior_cepat', charKey: 'B06_rival_cepat', name: 'SENIOR ANGKATAN LAMA', style: 'cepat', hp: 46, power: 0.85, speed: 1.1, dodgeChance: 0.3, cooldown: [45, 90], plans: [jab, { steps: ['light', 'light'], weight: 1 }], money: [0, 0] }),
+      grunt({
+        id: 'senior_agresif', charKey: 'B04_rival_agresif', name: 'SENIOR ANGKATAN LAMA', style: 'agresif', hp: 56, power: 0.95,
+        plans: [{ steps: ['light', 'light', 'light'], weight: 3 }, { steps: ['light', 'heavy'], weight: 1 }], money: [0, 0],
+      }),
+      grunt({
+        id: 'senior_tank', charKey: 'B05_rival_bertahan', name: 'SENIOR ANGKATAN LAMA', style: 'tank', hp: 72, power: 0.95, defense: 2, speed: 0.85, guardChance: 0.5, cooldown: [80, 130],
+        plans: [{ steps: ['heavy'], weight: 2 }, { steps: ['light', 'heavy'], weight: 1 }], money: [0, 0],
+      }),
       grunt({
         id: 'senior_lama',
         charKey: 'B07_senior_mengintimidasi',

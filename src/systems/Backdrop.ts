@@ -13,6 +13,8 @@ export interface BackdropOpts {
   weather?: Weather;
   rain?: boolean;
   filter?: ScreenFilter;
+  /** Formasi penonton (05_NPC/formasi) sebagai lapisan di atas latar. */
+  crowd?: string;
 }
 
 /** Latar stage lengkap: gambar (varian cuaca), dekorasi beranimasi, burung, hujan, overlay warna, filter sepia. */
@@ -29,6 +31,7 @@ export class Backdrop {
     const plan = planBackdrop(stage, opts.weather, opts.rain);
     this.objs.push(scene.add.image(0, 0, plan.key).setOrigin(0, 0).setDepth(DEPTH_BG));
 
+    if (opts.crowd) this.objs.push(scene.add.image(0, 0, 'npc:formasi:' + opts.crowd).setOrigin(0, 0).setDepth(DEPTH_DECOR + 0.2));
     if (plan.envMatches) for (const d of DECOR[stage] ?? []) this.addLoop(d.fx, d.x, d.y);
     if (plan.rain) for (const [x, y] of PUDDLES[stage] ?? []) this.addLoop('genangan_beriak', x, y);
     if (BIRD_STAGES.has(stage) && BIRD_WEATHER.includes(opts.weather)) this.startBirds();
@@ -119,6 +122,12 @@ export class Backdrop {
     this.birdTimer?.remove();
     for (const o of this.objs) o.destroy();
     this.objs.length = 0;
-    if (this.sepiaOn) this.scene.cameras.main.postFX.clear();
+    if (this.sepiaOn) {
+      try {
+        this.scene.cameras.main.postFX.clear();
+      } catch {
+        // kamera sudah dibongkar saat scene berhenti; filter ikut hilang bersamanya
+      }
+    }
   }
 }

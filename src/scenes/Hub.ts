@@ -11,6 +11,10 @@ import { SceneCutsceneHost } from '../systems/CutsceneHost';
 import { game } from '../systems/GameState';
 import { input } from '../systems/InputManager';
 import { runner } from '../systems/ChapterRunner';
+import { startQuest } from '../systems/QuestRunner';
+import type { HubQuestResult } from '../systems/QuestRunner';
+import { questState } from '../systems/Quests';
+import { questById } from '../data/sidequests';
 import { Menu } from '../ui/Menu';
 import type { MenuItem } from '../ui/Menu';
 import { addDim, addPanel, COLORS } from '../ui/Panel';
@@ -21,6 +25,8 @@ import { formatMoney } from '../util/text';
 
 export interface HubInit {
   location?: string;
+  /** Hasil Cerita Sekolah yang baru dimainkan; skrip sukses/gagalnya diputar di sini. */
+  quest?: HubQuestResult;
 }
 
 interface NpcEntry {
@@ -119,6 +125,21 @@ export class Hub extends Phaser.Scene {
       this.backdrop?.destroy();
     });
     runner.save();
+    if (data.quest) this.playQuestEnding(data.quest);
+  }
+
+  private playQuestEnding(r: HubQuestResult): void {
+    const q = questById(r.id);
+    const giver = this.npcs.find((n) => n.def.quest === r.id);
+    if (!q || !giver) return;
+    this.busy = true;
+    this.player.setPos(giver.actor.x - 40, giver.actor.y);
+    this.player.setFacing(1);
+    giver.actor.setFacing(-1);
+    void runCutscene(r.ok ? q.success : q.fail, this.host).then(() => {
+      this.noTalkUntil = this.time.now + 350;
+      this.busy = false;
+    });
   }
 
   // ---------- pemain ----------
@@ -218,8 +239,47 @@ export class Hub extends Phaser.Scene {
       actor.setFacing(def.face === 'left' ? -1 : 1);
       this.noTalkUntil = this.time.now + 350;
       if (def.action) this.openAction(def.action);
+      else if (def.quest) this.offerQuest(def.quest);
       else this.busy = false;
     });
+  }
+
+  // ---------- Cerita Sekolah ----------
+  private offerQuest(id: string): void {
+    const q = questById(id);
+    if (!q || questState(game.profile, q) !== 'tersedia') {
+      this.busy = false;
+      return;
+    }
+    input.clear();
+    const w = 330;
+    const h = 120;
+    const x = (LOGICAL_W - w) / 2;
+    const y = 70;
+    const close = (): void => {
+      this.menu?.destroy();
+      this.menu = null;
+      for (const o of this.menuObjs) o.destroy();
+      this.menuObjs = [];
+      input.clear();
+    };
+    const lines = [q.title, '', q.rule];
+    const texts = lines.map((t, i) => new PixelText(this, x + 14, y + 28 + i * 11, t, { color: i === 0 ? COLORS.gold : COLORS.text }).setDepth(106));
+    this.menuObjs = [addDim(this, 0.55, 90), ...addPanel(this, x, y, w, h, 'CERITA SEKOLAH'), ...texts];
+    const items: MenuItem[] = [
+      {
+        label: 'TERIMA',
+        onSelect: () => {
+          close();
+          void runCutscene(q.intro, this.host).then(() => {
+            this.leaving = true;
+            startQuest(this, q, this.loc.id);
+          });
+        },
+      },
+      { label: 'NANTI SAJA', onSelect: () => { close(); this.noTalkUntil = this.time.now + 350; this.busy = false; } },
+    ];
+    this.menu = new Menu(this, { x: x + 30, y: y + 72, items, width: 120, depth: 110, onBack: () => { close(); this.busy = false; } });
   }
 
   private openAction(action: 'shop' | 'dojo'): void {
@@ -239,6 +299,11 @@ export class Hub extends Phaser.Scene {
         onSelect: () => this.cycleCharacter(),
         onLeft: () => this.cycleCharacter(-1),
         onRight: () => this.cycleCharacter(1),
+      },
+      {
+        label: 'MODE BEBAS',
+        disabled: () => !game.profile.cleared || !this.scene.manager.keys.ModeSelect,
+        onSelect: () => this.scene.start('ModeSelect', { from: 'Hub', fromData: { location: this.loc.id } }),
       },
       { label: 'ARSIP SEJARAH', onSelect: () => this.scene.start('Archive', { from: 'Hub', fromData: { location: this.loc.id } }) },
       {

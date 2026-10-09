@@ -19,6 +19,7 @@ const ATTACK_RANGE_Y = 5;
 const APPROACH_TIMEOUT = 5 * 60;
 const GUARD_HOLD = 42;
 const DASH_MIN_DIST = 64;
+const FOLLOW_GAP = 52; // jarak sekutu di belakang pemain saat tidak ada lawan
 
 interface Pending {
   kind: 'guard' | 'dodge' | 'parry';
@@ -120,7 +121,8 @@ export class EnemyBrain {
     if (!player || self.entering !== 0 || !self.canAct) return IDLE_INTENT;
     const dx = player.x - self.x;
     const face = (dx >= 0 ? 1 : -1) as 1 | -1;
-    const tx = player.x - face * 52;
+    // selalu di belakang pemain (arah maju = kanan) agar tidak menutup jalan ke penanda LANJUT
+    const tx = Math.max(16, player.x - FOLLOW_GAP);
     return { ...IDLE_INTENT, face, ...this.moveToward(self, tx, player.y, 14, 4) };
   }
 

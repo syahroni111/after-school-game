@@ -53,3 +53,6 @@ export interface Bounds {
   maxY: number;
 }
 export const DEFAULT_BOUNDS: Bounds = { minX: 14, maxX: 466, minY: 160, maxY: 266 };
+
+/** Duet Panji (Bab 7): jumlah pukulan yang mendarat (pemain dan sekutu) untuk mengisi meteran. */
+export const DUET_FULL_HITS = 12;

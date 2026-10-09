@@ -150,6 +150,7 @@ export class CombatWorld implements FighterHost {
       for (let j = i + 1; j < fs.length; j++) {
         const b = fs[j] as Fighter;
         if (!SEPARATE_STATES.has(b.state)) continue;
+        if (a.team !== 'enemy' && b.team !== 'enemy') continue; // pemain dan sekutu saling menembus agar tidak menutup jalan
         const dx = b.x - a.x;
         const dy = Math.abs(b.y - a.y);
         if (Math.abs(dx) >= BODY_PUSH_X || dy >= BODY_PUSH_Y) continue;

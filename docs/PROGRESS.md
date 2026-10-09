@@ -18,7 +18,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 ## Milestone
 - [x] M0 — Fondasi proyek
 - [x] M1 — Pipeline aset
-- [ ] M2 — Penampil animasi & teks piksel
+- [x] M2 — Penampil animasi & teks piksel
 - [ ] M3 — Pemain & pertarungan inti
 - [ ] M4 — Musuh & AI
 - [ ] M5 — Stage, transisi, waktu & cuaca, Game Over
@@ -53,6 +53,17 @@ Keputusan M1:
 - Key animasi karakter semua sheet: `{charKey}:{anim}` (tidak ada tabrakan antar sheet, diuji). Sheet lain: `{sheetKey}:{anim}` (mis. `fx:impact_kecil:main`, `ui:penanda_tujuan:loop`). Sheet `_ekspresi` tidak punya `origin` di metadata; kode memakai default (32,59).
 - `validate-content.mjs` memuat modul TS lewat Vite SSR (`ssrLoadModule`), jadi validator murni di `src/` bisa dipakai bersama oleh skrip dan Vitest. Pemeriksaan huruf besar-kecil memakai `readdirSync` (Windows tidak membedakan).
 - Cuaca: file `13_WEATHER/{stage}_{cuaca}.png` → key `stage:{stage}:{cuaca}`; overlay hujan = sheet 4 frame vertikal, key `fx:overlay_hujan`.
+
+## M2 — selesai
+Rencana: `PixelText` (RetroFont dari font 5×7) + `util/text.ts` (aturan teks murni), `NineSlice`, `frameData.ts`, scene `dev/AnimViewer` (`?scene=AnimViewer&char=…&anim=…&frame=…&pause=1`), test yang mengukur piksel sheet asli.
+- [x] Screenshot AnimViewer frame aktif: `docs/screens/M2_animviewer_pukulan_berat.png` (+ pukulan_cepat, serangan_balik, dorong). Hitbox merah menutupi kepalan, hurtbox hijau di tubuh, kaki tepat di garis tanah kuning.
+- [x] Test `sprites.test.ts` (mengukur PNG asli untuk 15 petarung): kaki di baris 58–59 pada semua frame non-udara; frame aktif tiap serangan = frame lengan paling terentang; hitbox menjangkau kepalan (+2..+4 px); root motion cocok dengan pergeseran sprite (±3 px). Test `text.test.ts`: string huruf kecil / karakter di luar font **gagal** validasi.
+
+Keputusan M2:
+- Nilai awal GDD §4.3 ternyata cocok dengan piksel (jendela aktif = frame lengan terentang; root motion −10/+8/−6/−18 cocok). Tidak ada yang dikoreksi; hanya hitbox lokal yang ditentukan dari jangkauan kepalan terukur (A01: jab +24, lurus +26, kait +21, badan +27, berat +30, balik +28, dorong +28 dari titik kaki).
+- Perilaku root motion: sprite bergeser di dalam frame selama animasi; posisi entitas digeser di akhir animasi (sesuai CLAUDE.md §6). Sprite `jatuh` frame 0 kembali berdiri di titik yang sama dengan akhir `terpental`, jadi tidak ada loncatan.
+- Font: sel 6×7 (glyph 5 + 1 px kosong), warna putih sehingga bisa diwarnai dengan tint. `PixelText` = subclass `BitmapText` (RetroFont), `setText` selalu lewat `sanitizeText`.
+- Frame animasi dikendalikan oleh logika (tick), bukan oleh timer Phaser; animasi Phaser dipakai untuk efek, NPC, dan UI.
 
 ## Masalah terbuka
 - (belum ada)

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { LOGICAL_H, LOGICAL_W, computeZoom } from './config';
 import { Boot } from './scenes/Boot';
 import { Preload } from './scenes/Preload';
+import { AnimViewer } from './scenes/dev/AnimViewer';
 
 const BLOCKED_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
 
@@ -38,7 +39,7 @@ function start(): void {
     if (BLOCKED_KEYS.has(e.code)) e.preventDefault();
   });
 
-  const game = new Phaser.Game(buildGameConfig([Boot, Preload]));
+  const game = new Phaser.Game(buildGameConfig([Boot, Preload, AnimViewer]));
   applyZoom(game, host);
   window.addEventListener('resize', () => applyZoom(game, host));
   document.addEventListener('fullscreenchange', () => applyZoom(game, host));

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { IMAGES, SHEETS, animKeyFor } from '../data/assetIndex';
 import { isLoopingAnim } from '../data/animMap';
 import { LOGICAL_H, LOGICAL_W } from '../config';
+import { registerPixelFont } from '../ui/PixelText';
 
 const BAR_W = 200;
 const BAR_H = 8;
@@ -24,6 +25,7 @@ export class Preload extends Phaser.Scene {
   }
 
   create(): void {
+    registerPixelFont(this);
     this.createAnimations();
     this.registry.set('assetsReady', true);
     this.scene.start('Boot');

@@ -8,3 +8,7 @@ export const TICK_MS = 1000 / TICK_HZ;
 export function computeZoom(innerWidth: number, innerHeight: number): number {
   return Math.max(1, Math.floor(Math.min(innerWidth / LOGICAL_W, innerHeight / LOGICAL_H)));
 }
+
+/** Animasi karakter berjalan 12 fps; satu frame animasi = 5 tick logika (60 Hz). */
+export const ANIM_FPS = 12;
+export const TICKS_PER_FRAME = TICK_HZ / ANIM_FPS;

@@ -3,7 +3,10 @@ import type { Page } from '@playwright/test';
 import { playStory, activeScenes } from './bot';
 import { trackErrors, waitScene } from './helpers';
 
-const profile = (page: Page) => page.evaluate(() => JSON.parse(JSON.stringify((window as unknown as { __gs: { profile: unknown } }).__gs.profile)));
+const profile = (page: Page) =>
+  page.evaluate(() =>
+    JSON.parse(JSON.stringify((window as unknown as { __gs: { profile: unknown } }).__gs.profile)),
+  );
 
 /** Lompat ke satu bab lewat cheat debug, mainkan dengan bot sampai Waktu Bebas (bab terakhir lewat Kredit). */
 async function playChapter(page: Page, ch: string) {
@@ -75,12 +78,25 @@ test('M8: cerita utuh dari menu sampai tamat lewat Hub dan Peta (bot, god)', asy
   await page.keyboard.press('Enter'); // NORMAL
   await waitScene(page, 'Stage', 20_000);
   await playStory(page, { maxMs: 2_500_000, stopAt: [], continueStory: true });
-  const p = (await profile(page)) as P & { sideQuests: Record<string, string>; ranks: Record<string, string> };
+  const p = (await profile(page)) as P & {
+    sideQuests: Record<string, string>;
+    ranks: Record<string, string>;
+  };
   expect(p.chapter).toBe('tamat');
-  for (const id of ['prolog', 'ch01', 'ch02', 'ch03', 'ch04', 'ch05', 'ch06', 'ch07', 'ch08']) expect(p.flags[id === 'prolog' ? 'prolog_selesai' : `${id}_selesai`], id).toBe(true);
+  for (const id of ['prolog', 'ch01', 'ch02', 'ch03', 'ch04', 'ch05', 'ch06', 'ch07', 'ch08'])
+    expect(p.flags[id === 'prolog' ? 'prolog_selesai' : `${id}_selesai`], id).toBe(true);
   expect(p.cleared).toBe(true);
   expect(p.unlockedChars).toContain('B01_pemimpin_rival');
-  const loc = ['perpustakaan', 'lapangan_basket', 'ruang_musik', 'ruang_osis', 'parkir_sepeda', 'kebun_sekolah', 'kantin', 'gimnasium'];
+  const loc = [
+    'perpustakaan',
+    'lapangan_basket',
+    'ruang_musik',
+    'ruang_osis',
+    'parkir_sepeda',
+    'kebun_sekolah',
+    'kantin',
+    'gimnasium',
+  ];
   for (const l of loc) expect(p.flags[`loc_${l}`], l).toBe(true);
   await page.screenshot({ path: 'docs/screens/M8_tamat_hub.png' });
   expect(t.bad).toEqual([]);

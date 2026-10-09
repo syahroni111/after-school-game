@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { CHAPTERS } from '../../src/data/chapters';
 import { say, narasi } from '../../src/data/cutscene';
 import type { Cmd } from '../../src/data/cutscene';
-import { validateAll, validateChapter, validateCommands, validateScreen } from '../../src/data/validateContent';
+import {
+  validateAll,
+  validateChapter,
+  validateCommands,
+  validateScreen,
+} from '../../src/data/validateContent';
 import { validateEverything } from '../../src/data/validateWorld';
 import type { ScreenDef } from '../../src/data/stages';
 
@@ -21,7 +26,8 @@ describe('validasi konten cerita', () => {
       expect(ok([say('A01_protagonis', 'Halo semua')]).join()).toContain('karakter tidak didukung');
     });
     it('tanda kutip, kurung, titik koma, persen, dan elipsis ditolak', () => {
-      for (const t of ['"HALO"', 'HALO (YA)', 'A; B', '50%', 'TUNGGU…']) expect(ok([narasi(t)]).length, t).toBeGreaterThan(0);
+      for (const t of ['"HALO"', 'HALO (YA)', 'A; B', '50%', 'TUNGGU…'])
+        expect(ok([narasi(t)]).length, t).toBeGreaterThan(0);
     });
     it('karakter font yang sah diterima', () => {
       expect(ok([say('A01_protagonis', "AYO, JANGAN MENYERAH! BISA? YA... 5 & 6 - 7/8: OK'")])).toEqual([]);
@@ -43,7 +49,9 @@ describe('validasi konten cerita', () => {
     it('tokoh, ekspresi, dan animasi yang tidak ada ditolak', () => {
       expect(ok([say('X99_tidak_ada', 'HALO')]).join()).toContain('tokoh tidak dikenal');
       expect(ok([say('A01_protagonis', 'HALO', 'senang' as never)]).join()).toContain('ekspresi');
-      expect(ok([{ c: 'spawn', id: 'g', char: 'D01_guru', x: 100, y: 200, anim: 'pukulan_cepat' }]).join()).toContain('tidak punya animasi');
+      expect(
+        ok([{ c: 'spawn', id: 'g', char: 'D01_guru', x: 100, y: 200, anim: 'pukulan_cepat' }]).join(),
+      ).toContain('tidak punya animasi');
       expect(
         ok([
           { c: 'spawn', id: 'w', char: 'C03_kutu_buku', x: 100, y: 200 },
@@ -52,7 +60,9 @@ describe('validasi konten cerita', () => {
       ).toContain('tidak punya animasi');
     });
     it('musuh, sfx, lagu, dan unlock yang tidak valid ditolak', () => {
-      expect(ok([{ c: 'spawnWave', spawns: [{ enemy: 'siluman', side: 'left' }] }]).join()).toContain('musuh');
+      expect(ok([{ c: 'spawnWave', spawns: [{ enemy: 'siluman', side: 'left' }] }]).join()).toContain(
+        'musuh',
+      );
       expect(ok([{ c: 'sfx', name: 'ledakan_nuklir' }]).join()).toContain('sfx');
       expect(ok([{ c: 'music', song: 'dangdut' }]).join()).toContain('lagu');
       expect(ok([{ c: 'unlock', what: 'move:terbang' }]).join()).toContain('unlock');
@@ -79,10 +89,23 @@ describe('validasi konten cerita', () => {
     });
     it('cutsceneOnly tidak boleh punya musuh dan harus punya skrip', () => {
       expect(validateScreen({ ...base, cutsceneOnly: true }).join()).toContain('tanpa skrip');
-      expect(validateScreen({ ...base, cutsceneOnly: true, before: [narasi('HALO')], spawns: [{ enemy: 'cepat', side: 'left' }] }).join()).toContain('tidak boleh punya musuh');
+      expect(
+        validateScreen({
+          ...base,
+          cutsceneOnly: true,
+          before: [narasi('HALO')],
+          spawns: [{ enemy: 'cepat', side: 'left' }],
+        }).join(),
+      ).toContain('tidak boleh punya musuh');
     });
     it('dua bos dalam satu layar ditolak', () => {
-      const s: ScreenDef = { ...base, spawns: [{ enemy: 'jaka', side: 'left', boss: true }, { enemy: 'arga', side: 'right', boss: true }] };
+      const s: ScreenDef = {
+        ...base,
+        spawns: [
+          { enemy: 'jaka', side: 'left', boss: true },
+          { enemy: 'arga', side: 'right', boss: true },
+        ],
+      };
       expect(validateScreen(s).join()).toContain('satu bos');
     });
     it('id layar ganda dan bab berikutnya yang tidak ada ditolak', () => {
@@ -91,9 +114,22 @@ describe('validasi konten cerita', () => {
       expect(validateAll([ch, { ...ch, id: 'y', next: undefined }]).join()).toContain('id layar ganda');
     });
     it('flag yang dibaca tetapi tidak pernah diset dilaporkan', () => {
-      const s: ScreenDef = { ...base, id: 'f1', cutsceneOnly: true, before: [{ c: 'ifFlag', key: 'hantu', then: [narasi('A')] }] };
+      const s: ScreenDef = {
+        ...base,
+        id: 'f1',
+        cutsceneOnly: true,
+        before: [{ c: 'ifFlag', key: 'hantu', then: [narasi('A')] }],
+      };
       expect(validateAll([{ id: 'z', title: 'Z', screens: [s] }]).join()).toContain('hantu');
-      const s2: ScreenDef = { ...base, id: 'f2', cutsceneOnly: true, before: [{ c: 'setFlag', key: 'hantu' }, { c: 'ifFlag', key: 'hantu', then: [narasi('A')] }] };
+      const s2: ScreenDef = {
+        ...base,
+        id: 'f2',
+        cutsceneOnly: true,
+        before: [
+          { c: 'setFlag', key: 'hantu' },
+          { c: 'ifFlag', key: 'hantu', then: [narasi('A')] },
+        ],
+      };
       expect(validateAll([{ id: 'z2', title: 'Z', screens: [s2] }])).toEqual([]);
     });
   });

@@ -51,8 +51,18 @@ export class SaveSelect extends Phaser.Scene {
     this.mode = data.mode;
     this.cameras.main.setBackgroundColor(0x121a2e);
     this.cameras.main.fadeIn(250, 0, 0, 0);
-    addPanel(this, 40, 44, LOGICAL_W - 80, 150, this.mode === 'new' ? 'MULAI BARU: PILIH SLOT' : 'LANJUTKAN: PILIH SLOT');
-    if (!saves.available) new PixelText(this, 54, 176, 'PENYIMPANAN TIDAK TERSEDIA. GAME TETAP BISA DIMAINKAN.', { color: COLORS.bad }).setDepth(100);
+    addPanel(
+      this,
+      40,
+      44,
+      LOGICAL_W - 80,
+      150,
+      this.mode === 'new' ? 'MULAI BARU: PILIH SLOT' : 'LANJUTKAN: PILIH SLOT',
+    );
+    if (!saves.available)
+      new PixelText(this, 54, 176, 'PENYIMPANAN TIDAK TERSEDIA. GAME TETAP BISA DIMAINKAN.', {
+        color: COLORS.bad,
+      }).setDepth(100);
     this.buildMain();
   }
 
@@ -69,20 +79,42 @@ export class SaveSelect extends Phaser.Scene {
     }));
     items.push({ label: 'KEMBALI', onSelect: () => this.scene.start('MainMenu') });
     this.main?.destroy();
-    this.main = new Menu(this, { x: 66, y: 74, items, width: LOGICAL_W - 140, lineHeight: 18, depth: 110, onBack: () => this.scene.start('MainMenu'), onMove: () => audio.sfx('ui_move'), onConfirm: () => audio.sfx('ui_confirm') });
+    this.main = new Menu(this, {
+      x: 66,
+      y: 74,
+      items,
+      width: LOGICAL_W - 140,
+      lineHeight: 18,
+      depth: 110,
+      onBack: () => this.scene.start('MainMenu'),
+      onMove: () => audio.sfx('ui_move'),
+      onConfirm: () => audio.sfx('ui_confirm'),
+    });
     this.main.enabled = !this.sub;
   }
 
   private pick(slot: number, s: SlotSummary | null): void {
     if (this.mode === 'load') {
-      if (s) this.openSub(`SLOT ${slot + 1}`, [
-        { label: 'LANJUTKAN', onSelect: () => this.loadSlot(slot) },
-        { label: 'HAPUS SLOT', onSelect: () => this.openSub('HAPUS SLOT? TIDAK BISA DIBATALKAN', [
-          { label: 'YA, HAPUS', onSelect: () => { saves.erase(slot); this.closeSub(); this.buildMain(); } },
-          { label: 'BATAL', onSelect: () => this.closeSub() },
-        ]) },
-        { label: 'KEMBALI', onSelect: () => this.closeSub() },
-      ]);
+      if (s)
+        this.openSub(`SLOT ${slot + 1}`, [
+          { label: 'LANJUTKAN', onSelect: () => this.loadSlot(slot) },
+          {
+            label: 'HAPUS SLOT',
+            onSelect: () =>
+              this.openSub('HAPUS SLOT? TIDAK BISA DIBATALKAN', [
+                {
+                  label: 'YA, HAPUS',
+                  onSelect: () => {
+                    saves.erase(slot);
+                    this.closeSub();
+                    this.buildMain();
+                  },
+                },
+                { label: 'BATAL', onSelect: () => this.closeSub() },
+              ]),
+          },
+          { label: 'KEMBALI', onSelect: () => this.closeSub() },
+        ]);
       return;
     }
     if (s) {
@@ -94,10 +126,17 @@ export class SaveSelect extends Phaser.Scene {
   }
 
   private pickDifficulty(slot: number): void {
-    this.openSub('KESULITAN', [
-      ...DIFFICULTIES.map((d): MenuItem => ({ label: `${DIFFICULTY[d].label}${d === 'normal' ? ' - DISARANKAN' : ''}`, onSelect: () => this.startNew(slot, d) })),
-      { label: 'BATAL', onSelect: () => this.closeSub() },
-    ], 1);
+    this.openSub(
+      'KESULITAN',
+      [
+        ...DIFFICULTIES.map((d): MenuItem => ({
+          label: `${DIFFICULTY[d].label}${d === 'normal' ? ' - DISARANKAN' : ''}`,
+          onSelect: () => this.startNew(slot, d),
+        })),
+        { label: 'BATAL', onSelect: () => this.closeSub() },
+      ],
+      1,
+    );
   }
 
   private startNew(slot: number, d: Difficulty): void {
@@ -138,7 +177,17 @@ export class SaveSelect extends Phaser.Scene {
     const x = (LOGICAL_W - w) / 2;
     const y = 96;
     this.subObjs.push(addDim(this, 0.55, 120), ...addPanel(this, x, y, w, h, title, 130));
-    this.sub = new Menu(this, { x: x + 20, y: y + 22, items, width: w - 34, depth: 140, startIndex, onBack: () => this.closeSub(), onMove: () => audio.sfx('ui_move'), onConfirm: () => audio.sfx('ui_confirm') });
+    this.sub = new Menu(this, {
+      x: x + 20,
+      y: y + 22,
+      items,
+      width: w - 34,
+      depth: 140,
+      startIndex,
+      onBack: () => this.closeSub(),
+      onMove: () => audio.sfx('ui_move'),
+      onConfirm: () => audio.sfx('ui_confirm'),
+    });
   }
 
   private closeSub(rebuild = true): void {

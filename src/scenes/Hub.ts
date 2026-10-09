@@ -71,7 +71,9 @@ export class Hub extends Phaser.Scene {
   }
 
   create(data: HubInit): void {
-    const loc = hubLocation(data.location ?? game.profile.hubLocation ?? 'halaman') ?? (HUB_LOCATIONS[0] as HubLocation);
+    const loc =
+      hubLocation(data.location ?? game.profile.hubLocation ?? 'halaman') ??
+      (HUB_LOCATIONS[0] as HubLocation);
     this.loc = loc;
     game.profile.hubLocation = loc.id;
     if (import.meta.env.DEV) (window as unknown as { __hub?: Hub }).__hub = this;
@@ -108,8 +110,15 @@ export class Hub extends Phaser.Scene {
 
     this.prompt = this.add.sprite(0, 0, 'ui:penanda_misi', 0).setDepth(19000).setVisible(false);
     this.prompt.play('ui:penanda_misi:loop');
-    this.add.sprite(EXIT_X + 8, 205, 'ui:penanda_tujuan', 0).setDepth(19000).play('ui:penanda_tujuan:loop');
-    new PixelText(this, EXIT_X + 8, 184, 'PETA', { color: COLORS.text, origin: 0.5, align: 'center' }).setDepth(19000);
+    this.add
+      .sprite(EXIT_X + 8, 205, 'ui:penanda_tujuan', 0)
+      .setDepth(19000)
+      .play('ui:penanda_tujuan:loop');
+    new PixelText(this, EXIT_X + 8, 184, 'PETA', {
+      color: COLORS.text,
+      origin: 0.5,
+      align: 'center',
+    }).setDepth(19000);
 
     this.add.rectangle(0, 0, LOGICAL_W, 20, 0x121a2e, 0.7).setOrigin(0, 0).setDepth(19900);
     this.header = new PixelText(this, 6, 6, '', { color: COLORS.text }).setDepth(19901);
@@ -151,7 +160,9 @@ export class Hub extends Phaser.Scene {
 
   override update(time: number, delta: number): void {
     this.host.update(delta);
-    this.header.setText(`${this.loc.label}   ${formatMoney(game.profile.money)}   ${characterName(game.profile.selectedChar)}`);
+    this.header.setText(
+      `${this.loc.label}   ${formatMoney(game.profile.money)}   ${characterName(game.profile.selectedChar)}`,
+    );
     for (const e of this.npcs) {
       if (time >= e.nextIdle && !this.busy) {
         const alts = e.def.idle ? [e.def.idle] : IDLE_ALTS;
@@ -172,7 +183,10 @@ export class Hub extends Phaser.Scene {
     const dy = (h.has('down') ? 1 : 0) - (h.has('up') ? 1 : 0);
     const dt = delta / 1000;
     if (dx !== 0 || dy !== 0) {
-      this.player.setPos(clamp(this.player.x + dx * WALK_X * dt, 14, LOGICAL_W - 14), clamp(this.player.y + dy * WALK_Y * dt, MIN_Y, MAX_Y));
+      this.player.setPos(
+        clamp(this.player.x + dx * WALK_X * dt, 14, LOGICAL_W - 14),
+        clamp(this.player.y + dy * WALK_Y * dt, MIN_Y, MAX_Y),
+      );
       if (dx !== 0) this.player.setFacing(dx > 0 ? 1 : -1);
       this.setPlayerAnim('jalan_samping');
       this.idleAt = time + 4500;
@@ -191,7 +205,8 @@ export class Hub extends Phaser.Scene {
     } else this.prompt.setVisible(false);
 
     if (f.pressed.has('pause')) this.openMenu();
-    else if ((f.pressed.has('interact') || f.pressed.has('confirm')) && near && time >= this.noTalkUntil) this.interact(near);
+    else if ((f.pressed.has('interact') || f.pressed.has('confirm')) && near && time >= this.noTalkUntil)
+      this.interact(near);
     else if (this.player.x >= EXIT_X) {
       this.leaving = true;
       this.scene.start('MapSelect', { location: this.loc.id });
@@ -264,7 +279,11 @@ export class Hub extends Phaser.Scene {
       input.clear();
     };
     const lines = [q.title, '', q.rule];
-    const texts = lines.map((t, i) => new PixelText(this, x + 14, y + 28 + i * 11, t, { color: i === 0 ? COLORS.gold : COLORS.text }).setDepth(106));
+    const texts = lines.map((t, i) =>
+      new PixelText(this, x + 14, y + 28 + i * 11, t, {
+        color: i === 0 ? COLORS.gold : COLORS.text,
+      }).setDepth(106),
+    );
     this.menuObjs = [addDim(this, 0.55, 90), ...addPanel(this, x, y, w, h, 'CERITA SEKOLAH'), ...texts];
     const items: MenuItem[] = [
       {
@@ -277,14 +296,34 @@ export class Hub extends Phaser.Scene {
           });
         },
       },
-      { label: 'NANTI SAJA', onSelect: () => { close(); this.noTalkUntil = this.time.now + 350; this.busy = false; } },
+      {
+        label: 'NANTI SAJA',
+        onSelect: () => {
+          close();
+          this.noTalkUntil = this.time.now + 350;
+          this.busy = false;
+        },
+      },
     ];
-    this.menu = new Menu(this, { x: x + 30, y: y + 72, items, width: 120, depth: 110, onBack: () => { close(); this.busy = false; } });
+    this.menu = new Menu(this, {
+      x: x + 30,
+      y: y + 72,
+      items,
+      width: 120,
+      depth: 110,
+      onBack: () => {
+        close();
+        this.busy = false;
+      },
+    });
   }
 
   private openAction(action: 'shop' | 'dojo'): void {
     this.leaving = true;
-    this.scene.start(action === 'shop' ? 'Shop' : 'Dojo', { from: 'Hub', fromData: { location: this.loc.id } });
+    this.scene.start(action === 'shop' ? 'Shop' : 'Dojo', {
+      from: 'Hub',
+      fromData: { location: this.loc.id },
+    });
   }
 
   // ---------- menu jeda Waktu Bebas ----------
@@ -305,7 +344,10 @@ export class Hub extends Phaser.Scene {
         disabled: () => !game.profile.cleared || !this.scene.manager.keys.ModeSelect,
         onSelect: () => this.scene.start('ModeSelect', { from: 'Hub', fromData: { location: this.loc.id } }),
       },
-      { label: 'ARSIP SEJARAH', onSelect: () => this.scene.start('Archive', { from: 'Hub', fromData: { location: this.loc.id } }) },
+      {
+        label: 'ARSIP SEJARAH',
+        onSelect: () => this.scene.start('Archive', { from: 'Hub', fromData: { location: this.loc.id } }),
+      },
       {
         label: 'PENGATURAN',
         disabled: () => !this.scene.manager.keys.Settings,
@@ -318,13 +360,26 @@ export class Hub extends Phaser.Scene {
           showToast(this, ok ? 'TERSIMPAN' : 'TIDAK BISA MENYIMPAN', 1800, ok ? COLORS.good : COLORS.bad);
         },
       },
-      { label: 'KELUAR KE MENU', onSelect: () => { runner.save(); this.scene.start('MainMenu'); } },
+      {
+        label: 'KELUAR KE MENU',
+        onSelect: () => {
+          runner.save();
+          this.scene.start('MainMenu');
+        },
+      },
     ];
     const h = 34 + items.length * 16;
     const x = (LOGICAL_W - w) / 2;
     const y = (LOGICAL_H - h) / 2;
     this.menuObjs = [addDim(this, 0.62, 90), ...addPanel(this, x, y, w, h, 'JEDA')];
-    this.menu = new Menu(this, { x: x + 20, y: y + 28, items, width: w - 34, depth: 110, onBack: () => this.closeMenu() });
+    this.menu = new Menu(this, {
+      x: x + 20,
+      y: y + 28,
+      items,
+      width: w - 34,
+      depth: 110,
+      onBack: () => this.closeMenu(),
+    });
   }
 
   private cycleCharacter(d = 1): void {

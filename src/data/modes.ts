@@ -27,7 +27,8 @@ export function freePlayScreens(ch: ChapterDef): ScreenDef[] {
 }
 
 /** Bab yang punya pertarungan (cutscene murni tidak masuk daftar Mode Bebas). */
-export const playableChapters = (all: readonly ChapterDef[]): ChapterDef[] => all.filter((c) => freePlayScreens(c).length > 0);
+export const playableChapters = (all: readonly ChapterDef[]): ChapterDef[] =>
+  all.filter((c) => freePlayScreens(c).length > 0);
 
 /** Semua bos cerita berurutan, satu bos per layar, HP penuh di setiap layar. */
 export function bossRushScreens(all: readonly ChapterDef[]): ScreenDef[] {

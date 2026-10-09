@@ -1,0 +1,8 @@
+dist
+public
+AFTER_SCHOOL
+node_modules
+src/generated
+release
+test-results
+docs

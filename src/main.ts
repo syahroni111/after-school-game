@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { LOGICAL_H, LOGICAL_W, computeZoom } from './config';
+import { LOGICAL_H, LOGICAL_W } from './config';
+import { setupAudio } from './audio/Engine';
 import { Boot } from './scenes/Boot';
 import { Preload } from './scenes/Preload';
 import { AnimViewer } from './scenes/dev/AnimViewer';
@@ -11,6 +12,9 @@ import { Result } from './scenes/Result';
 import { Archive } from './scenes/Archive';
 import { ModeSelect } from './scenes/ModeSelect';
 import { Credits } from './scenes/Credits';
+import { Settings } from './scenes/Settings';
+import { applyDisplay } from './systems/Display';
+import { settings } from './systems/Settings';
 import { Dojo } from './scenes/Dojo';
 import { Hub } from './scenes/Hub';
 import { MapSelect } from './scenes/MapSelect';
@@ -40,13 +44,6 @@ function buildGameConfig(scenes: Phaser.Types.Scenes.SceneType[]): Phaser.Types.
   };
 }
 
-function applyZoom(game: Phaser.Game, host: HTMLElement): void {
-  const zoom = computeZoom(window.innerWidth, window.innerHeight);
-  host.style.width = `${LOGICAL_W * zoom}px`;
-  host.style.height = `${LOGICAL_H * zoom}px`;
-  game.scale.refresh();
-}
-
 function start(): void {
   const host = document.getElementById('game');
   if (!host) throw new Error('#game tidak ditemukan');
@@ -57,18 +54,46 @@ function start(): void {
   });
 
   input.attach();
+  setupAudio();
   const game = new Phaser.Game(
-    buildGameConfig([Boot, Preload, Title, MainMenu, SaveSelect, Credits, Stage, Pause, Result, GameOver, Hub, MapSelect, Shop, Dojo, Archive, ModeSelect, AnimViewer, CombatSandbox, DebugMenu]),
+    buildGameConfig([
+      Boot,
+      Preload,
+      Title,
+      MainMenu,
+      SaveSelect,
+      Credits,
+      Stage,
+      Pause,
+      Result,
+      GameOver,
+      Hub,
+      MapSelect,
+      Shop,
+      Dojo,
+      Archive,
+      ModeSelect,
+      Settings,
+      AnimViewer,
+      CombatSandbox,
+      DebugMenu,
+    ]),
   );
-  applyZoom(game, host);
-  window.addEventListener('resize', () => applyZoom(game, host));
-  document.addEventListener('fullscreenchange', () => applyZoom(game, host));
+  const relayout = (): void => applyDisplay(game, host, settings.current.scale);
+  relayout();
+  window.addEventListener('resize', relayout);
+  document.addEventListener('fullscreenchange', relayout);
 
   game.events.once(Phaser.Core.Events.READY, () => {
     const canvas = game.canvas;
     canvas.tabIndex = 0;
     canvas.addEventListener('pointerdown', () => canvas.focus());
     canvas.focus();
+    // Tab kehilangan fokus: pertarungan otomatis dijeda agar pemain tidak kalah saat pergi.
+    game.events.on(Phaser.Core.Events.BLUR, () => {
+      const stage = game.scene.getScene('Stage') as unknown as { requestPause?: () => void } | null;
+      if (stage && game.scene.isActive('Stage')) stage.requestPause?.();
+    });
   });
 
   (window as unknown as { __game: Phaser.Game }).__game = game;

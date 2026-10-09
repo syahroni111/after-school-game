@@ -52,7 +52,15 @@ describe('runCutscene', () => {
       ],
       host,
     );
-    expect(log).toEqual(['fade:in:400', 'say:A01_protagonis:HALO.', 'shake:2', 'flash:0.5', 'setFlag:a:true', 'money:500', 'unlock:move:badan']);
+    expect(log).toEqual([
+      'fade:in:400',
+      'say:A01_protagonis:HALO.',
+      'shake:2',
+      'flash:0.5',
+      'setFlag:a:true',
+      'money:500',
+      'unlock:move:badan',
+    ]);
   });
   it('say menunggu host selesai sebelum perintah berikutnya', async () => {
     const order: string[] = [];
@@ -73,7 +81,13 @@ describe('runCutscene', () => {
     let finish!: () => void;
     host.move = () => new Promise<void>((r) => (finish = r)).then(() => void order.push('tiba'));
     host.sfx = () => void order.push('sfx');
-    await runCutscene([{ c: 'move', id: 'a', x: 1, wait: false }, { c: 'sfx', name: 'step' }], host);
+    await runCutscene(
+      [
+        { c: 'move', id: 'a', x: 1, wait: false },
+        { c: 'sfx', name: 'step' },
+      ],
+      host,
+    );
     expect(order).toEqual(['sfx']);
     finish();
     await Promise.resolve();
@@ -93,13 +107,24 @@ describe('runCutscene', () => {
   });
   it('ifFlag membaca flag yang baru diset oleh perintah sebelumnya', async () => {
     const { host, log } = fakeHost();
-    await runCutscene([{ c: 'setFlag', key: 'k' }, { c: 'ifFlag', key: 'k', then: [say('x', 'YA')] }], host);
+    await runCutscene(
+      [
+        { c: 'setFlag', key: 'k' },
+        { c: 'ifFlag', key: 'k', then: [say('x', 'YA')] },
+      ],
+      host,
+    );
     expect(log.at(-1)).toBe('say:x:YA');
   });
   it('spawnWave menunggu secara bawaan; waitFor membawa jumlah', async () => {
     const { host, log } = fakeHost();
     await runCutscene(
-      [{ c: 'spawnWave', spawns: [{ enemy: 'cepat', side: 'left' }] }, { c: 'spawnWave', spawns: [], wait: false }, { c: 'waitFor', cond: 'combo', times: 3 }, { c: 'waitFor', cond: 'move' }],
+      [
+        { c: 'spawnWave', spawns: [{ enemy: 'cepat', side: 'left' }] },
+        { c: 'spawnWave', spawns: [], wait: false },
+        { c: 'waitFor', cond: 'combo', times: 3 },
+        { c: 'waitFor', cond: 'move' },
+      ],
       host,
     );
     expect(log).toEqual(['wave:1:true', 'wave:0:false', 'waitFor:combo:3', 'waitFor:move:1']);
@@ -116,7 +141,17 @@ describe('runCutscene', () => {
   });
   it('walkCmds mengunjungi perintah bersarang', () => {
     const seen: string[] = [];
-    walkCmds([{ c: 'ifFlag', key: 'k', then: [say('x', 'A'), { c: 'ifFlag', key: 'j', then: [say('x', 'B')], else: [say('x', 'C')] }], else: [say('x', 'D')] }], (c) => seen.push(c.c === 'say' ? c.text : c.c));
+    walkCmds(
+      [
+        {
+          c: 'ifFlag',
+          key: 'k',
+          then: [say('x', 'A'), { c: 'ifFlag', key: 'j', then: [say('x', 'B')], else: [say('x', 'C')] }],
+          else: [say('x', 'D')],
+        },
+      ],
+      (c) => seen.push(c.c === 'say' ? c.text : c.c),
+    );
     expect(seen).toEqual(['ifFlag', 'A', 'ifFlag', 'B', 'C', 'D']);
   });
 });

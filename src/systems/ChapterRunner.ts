@@ -95,7 +95,11 @@ export class ChapterRunner {
       combo: r.stats.maxCombo,
       seconds: r.seconds,
     }));
-    if (rows.length > 0) p.ranks[ch.id] = betterRank(p.ranks[ch.id] as 'S' | 'A' | 'B' | 'C' | undefined, chapterRank(rows.map((x) => x.score)));
+    if (rows.length > 0)
+      p.ranks[ch.id] = betterRank(
+        p.ranks[ch.id] as 'S' | 'A' | 'B' | 'C' | undefined,
+        chapterRank(rows.map((x) => x.score)),
+      );
     p.flags[`${ch.id}_selesai`] = true;
     p.chapter = ch.next ?? 'tamat';
     p.step = 0;
@@ -112,7 +116,10 @@ export class ChapterRunner {
     const hubExists = from.scene.manager.keys.Hub !== undefined;
     if (!ch.next) {
       // Tamat: kredit bergulir, lalu Waktu Bebas.
-      from.scene.start(from.scene.manager.keys.Credits ? 'Credits' : 'MainMenu', { ending: true, from: hubExists ? 'Hub' : 'MainMenu' });
+      from.scene.start(from.scene.manager.keys.Credits ? 'Credits' : 'MainMenu', {
+        ending: true,
+        from: hubExists ? 'Hub' : 'MainMenu',
+      });
       return;
     }
     if (ch.hub && hubExists) {
@@ -128,11 +135,15 @@ export class ChapterRunner {
     if (!target) return false;
     for (const ch of CHAPTERS) {
       if (ch.id === chapterId) break;
-      for (const s of ch.screens) for (const script of [s.before, s.during, s.after]) if (script) applyScriptEffects(game.profile, script);
+      for (const s of ch.screens)
+        for (const script of [s.before, s.during, s.after])
+          if (script) applyScriptEffects(game.profile, script);
       game.profile.flags[`${ch.id}_selesai`] = true;
     }
     // layar sebelum `step` pada bab tujuan
-    for (const s of target.screens.slice(0, step)) for (const script of [s.before, s.during, s.after]) if (script) applyScriptEffects(game.profile, script);
+    for (const s of target.screens.slice(0, step))
+      for (const script of [s.before, s.during, s.after])
+        if (script) applyScriptEffects(game.profile, script);
     if (step >= target.screens.length) game.profile.flags[`${chapterId}_selesai`] = true;
     game.profile.chapter = chapterId;
     game.profile.step = step;
@@ -143,4 +154,3 @@ export class ChapterRunner {
 }
 
 export const runner = new ChapterRunner();
-

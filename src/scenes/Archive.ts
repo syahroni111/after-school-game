@@ -33,16 +33,29 @@ export class Archive extends Phaser.Scene {
     const found = new Set(game.profile.archives);
     addPanel(this, 8, 8, 196, 254, 'ARSIP SEJARAH');
     addPanel(this, 212, 8, 260, 254, 'ISI ARSIP');
-    this.count = new PixelText(this, 20, 246, `${found.size}/${ARCHIVES.length} DITEMUKAN`, { color: found.size === ARCHIVES.length ? COLORS.gold : COLORS.dim }).setDepth(100);
+    this.count = new PixelText(this, 20, 246, `${found.size}/${ARCHIVES.length} DITEMUKAN`, {
+      color: found.size === ARCHIVES.length ? COLORS.gold : COLORS.dim,
+    }).setDepth(100);
     this.title = new PixelText(this, 226, 30, '', { color: COLORS.accent }).setDepth(100);
     this.body = new PixelText(this, 226, 50, '', { color: COLORS.text }).setDepth(100);
 
     const items: MenuItem[] = ARCHIVES.map((a, i) => ({
-      label: found.has(a.id) ? `${String(i + 1).padStart(2, '0')} ${a.title}`.slice(0, 29) : `${String(i + 1).padStart(2, '0')} ???`,
+      label: found.has(a.id)
+        ? `${String(i + 1).padStart(2, '0')} ${a.title}`.slice(0, 29)
+        : `${String(i + 1).padStart(2, '0')} ???`,
       onSelect: () => this.show(i),
     }));
     items.push({ label: 'KEMBALI', onSelect: () => this.leave() });
-    this.menu = new Menu(this, { x: 24, y: 28, items, width: 172, lineHeight: 16, depth: 110, onBack: () => this.leave(), onMove: () => this.preview() });
+    this.menu = new Menu(this, {
+      x: 24,
+      y: 28,
+      items,
+      width: 172,
+      lineHeight: 16,
+      depth: 110,
+      onBack: () => this.leave(),
+      onMove: () => this.preview(),
+    });
     this.preview();
   }
 
@@ -67,7 +80,9 @@ export class Archive extends Phaser.Scene {
       this.body.setText(a.lines.join('\n'));
     } else {
       this.title.setText('???');
-      this.body.setText('HALAMAN INI BELUM DITEMUKAN.\nCARI PENANDA BERKEDIP DI STAGE DAN\nTEKAN E UNTUK MENGAMBILNYA.');
+      this.body.setText(
+        'HALAMAN INI BELUM DITEMUKAN.\nCARI PENANDA BERKEDIP DI STAGE DAN\nTEKAN E UNTUK MENGAMBILNYA.',
+      );
     }
     this.count.setX(20);
   }

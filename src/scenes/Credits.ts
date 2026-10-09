@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { LOGICAL_H, LOGICAL_W } from '../config';
+import { audio } from '../audio/AudioBus';
 import { input } from '../systems/InputManager';
 import { COLORS } from '../ui/Panel';
 import { PixelText } from '../ui/PixelText';
@@ -46,7 +47,15 @@ export class Credits extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0x0a0e1a);
     this.cameras.main.fadeIn(400, 0, 0, 0);
     this.t = 0;
-    this.texts = LINES.map(([s, c], i) => new PixelText(this, LOGICAL_W / 2, LOGICAL_H + i * LINE_H, s, { color: c || COLORS.text, origin: 0.5, align: 'center' }));
+    audio.music('festival');
+    this.texts = LINES.map(
+      ([s, c], i) =>
+        new PixelText(this, LOGICAL_W / 2, LOGICAL_H + i * LINE_H, s, {
+          color: c || COLORS.text,
+          origin: 0.5,
+          align: 'center',
+        }),
+    );
     this.input.on('pointerdown', () => this.leave());
   }
 

@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
+import { engine } from '../audio/Engine';
 import { debug } from '../systems/Debug';
+import { applyDisplay } from '../systems/Display';
+import { input } from '../systems/InputManager';
 import { game } from '../systems/GameState';
 import { runner } from '../systems/ChapterRunner';
 import { saves } from '../systems/SaveSystem';
@@ -17,6 +20,10 @@ export class Boot extends Phaser.Scene {
       return;
     }
     settings.current = saves.loadSettings();
+    input.bindings = settings.current.bindings;
+    engine.applyVolumes();
+    const host = document.getElementById('game');
+    if (host) applyDisplay(this.game, host, settings.current.scale);
     const params = new URLSearchParams(window.location.search);
     const target = params.get('scene');
     if (debug.on && debug.chapter) {

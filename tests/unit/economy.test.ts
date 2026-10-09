@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { FOODS } from '../../src/data/items';
 import { DOJO_MOVES } from '../../src/data/dojo';
-import { afterScreenHp, buyFood, buyMove, consumeBuffs, currentHp, dojoStatus, maxHp, startHp } from '../../src/systems/Economy';
+import {
+  afterScreenHp,
+  buyFood,
+  buyMove,
+  consumeBuffs,
+  currentHp,
+  dojoStatus,
+  maxHp,
+  startHp,
+} from '../../src/systems/Economy';
 import { newProfile, playerStats } from '../../src/systems/Profile';
 
 const rich = () => {

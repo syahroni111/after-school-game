@@ -69,19 +69,60 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     weather: 'cerah',
     npcs: [
       {
-        id: 'laras', char: LARAS, x: 330, y: 188, face: 'left',
+        id: 'laras',
+        char: LARAS,
+        x: 330,
+        y: 188,
+        face: 'left',
         talk: [
-          t([say(LARAS, 'FESTIVAL TIGA SEKOLAH SUDAH KEMBALI, DAN SEMUA ORANG DATANG. TERIMA KASIH, RAKA.', 'percaya_diri')], 'ch08_selesai'),
-          t([say(LARAS, 'SURAT ITU PALSU. BERARTI ADA YANG MENGADU DOMBA KITA. KITA HARUS CARI TAHU SIAPA.', 'serius')], 'ch04_selesai'),
-          t([say(LARAS, 'USULAN FESTIVAL SUDAH KUAJUKAN KE OSIS. SEMOGA DISETUJUI.', 'percaya_diri')], 'ch02_selesai'),
+          t(
+            [
+              say(
+                LARAS,
+                'FESTIVAL TIGA SEKOLAH SUDAH KEMBALI, DAN SEMUA ORANG DATANG. TERIMA KASIH, RAKA.',
+                'percaya_diri',
+              ),
+            ],
+            'ch08_selesai',
+          ),
+          t(
+            [
+              say(
+                LARAS,
+                'SURAT ITU PALSU. BERARTI ADA YANG MENGADU DOMBA KITA. KITA HARUS CARI TAHU SIAPA.',
+                'serius',
+              ),
+            ],
+            'ch04_selesai',
+          ),
+          t(
+            [say(LARAS, 'USULAN FESTIVAL SUDAH KUAJUKAN KE OSIS. SEMOGA DISETUJUI.', 'percaya_diri')],
+            'ch02_selesai',
+          ),
           t([say(LARAS, 'SEKOLAH BARU, TAPI SUDAH RAMAI, YA? JAGA DIRI, RAKA.', 'netral')]),
         ],
       },
       {
-        id: 'dimas', char: DIMAS, x: 230, y: 198, face: 'right',
+        id: 'dimas',
+        char: DIMAS,
+        x: 230,
+        y: 198,
+        face: 'right',
         talk: [
-          t([say(DIMAS, 'FESTIVALNYA ENAK SEKALI. MAKANANNYA, MAKSUDKU. PERTANDINGANNYA JUGA.', 'percaya_diri')], 'ch08_selesai'),
-          t([say(DIMAS, 'BAYU CEPAT SEKALI. TAPI GORENGAN KANTIN LEBIH CEPAT HABISNYA.', 'percaya_diri')], 'ch03_selesai'),
+          t(
+            [
+              say(
+                DIMAS,
+                'FESTIVALNYA ENAK SEKALI. MAKANANNYA, MAKSUDKU. PERTANDINGANNYA JUGA.',
+                'percaya_diri',
+              ),
+            ],
+            'ch08_selesai',
+          ),
+          t(
+            [say(DIMAS, 'BAYU CEPAT SEKALI. TAPI GORENGAN KANTIN LEBIH CEPAT HABISNYA.', 'percaya_diri')],
+            'ch03_selesai',
+          ),
           t([say(DIMAS, 'AKU LAPAR. KANTIN SUDAH BUKA, KAN? ANTAR AKU SETELAH INI.', 'percaya_diri')]),
         ],
       },
@@ -94,9 +135,16 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'kantin',
     npcs: [
       {
-        id: 'andi', char: ANDI, x: 330, y: 190, face: 'left',
+        id: 'andi',
+        char: ANDI,
+        x: 330,
+        y: 190,
+        face: 'left',
         talk: [
-          t([say(ANDI, 'ES TEHNYA MANIS. SAMA SEPERTI SUASANA SEKOLAH SEKARANG.', 'percaya_diri')], 'ch08_selesai'),
+          t(
+            [say(ANDI, 'ES TEHNYA MANIS. SAMA SEPERTI SUASANA SEKOLAH SEKARANG.', 'percaya_diri')],
+            'ch08_selesai',
+          ),
           t([say(ANDI, 'MAKAN YANG BANYAK SEBELUM BERTARUNG. RAHASIA ORANG SOUTH COURT.', 'netral')]),
         ],
       },
@@ -109,14 +157,39 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'gimnasium',
     npcs: [
       {
-        id: 'gilang', char: GILANG, x: 330, y: 186, face: 'left', action: 'dojo',
+        id: 'gilang',
+        char: GILANG,
+        x: 330,
+        y: 186,
+        face: 'left',
+        action: 'dojo',
         talk: [
-          t([say(GILANG, 'DOJO SELALU TERBUKA. JURUS TERBAIK ADALAH YANG KAU PAHAMI, BUKAN YANG KAU HAFAL.', 'percaya_diri')], 'ch04_selesai'),
-          t([say(GILANG, 'SELAMAT DATANG DI DOJO. BELI JURUS BARU, ATAU LATIH TANDING DENGANKU.', 'percaya_diri')]),
+          t(
+            [
+              say(
+                GILANG,
+                'DOJO SELALU TERBUKA. JURUS TERBAIK ADALAH YANG KAU PAHAMI, BUKAN YANG KAU HAFAL.',
+                'percaya_diri',
+              ),
+            ],
+            'ch04_selesai',
+          ),
+          t([
+            say(
+              GILANG,
+              'SELAMAT DATANG DI DOJO. BELI JURUS BARU, ATAU LATIH TANDING DENGANKU.',
+              'percaya_diri',
+            ),
+          ]),
         ],
       },
       {
-        id: 'bima', char: BIMA, x: 170, y: 196, face: 'right', idle: 'main_basket',
+        id: 'bima',
+        char: BIMA,
+        x: 170,
+        y: 196,
+        face: 'right',
+        idle: 'main_basket',
         talk: [t([say(BIMA, 'LATIH TANDING ITU SERU! KALAU MAU, LAWAN AKU DI DOJO.', 'percaya_diri')])],
       },
     ],
@@ -127,17 +200,48 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'perpustakaan',
     npcs: [
       {
-        id: 'wawan', char: WAWAN, x: 330, y: 192, face: 'left', idle: 'membaca', quest: 'buku_hilang',
+        id: 'wawan',
+        char: WAWAN,
+        x: 330,
+        y: 192,
+        face: 'left',
+        idle: 'membaca',
+        quest: 'buku_hilang',
         talk: [
-          t([say(WAWAN, 'SEKARANG PERPUSTAKAAN RAMAI. SEMUA SEKOLAH MENCARI BUKU SEJARAH FESTIVAL.', 'percaya_diri')], 'ch08_selesai'),
+          t(
+            [
+              say(
+                WAWAN,
+                'SEKARANG PERPUSTAKAAN RAMAI. SEMUA SEKOLAH MENCARI BUKU SEJARAH FESTIVAL.',
+                'percaya_diri',
+              ),
+            ],
+            'ch08_selesai',
+          ),
           t([say(WAWAN, 'SSST... INI PERPUSTAKAAN. TAPI KALAU UNTUK RAKA, BOLEH BERBISIK.', 'netral')]),
         ],
       },
       {
-        id: 'hendra', char: HENDRA, x: 160, y: 188, face: 'right',
+        id: 'hendra',
+        char: HENDRA,
+        x: 160,
+        y: 188,
+        face: 'right',
         talk: [
-          t([say(HENDRA, 'PIALA PANJI SUDAH PULANG. DUA PULUH TAHUN PENANTIAN... TERIMA KASIH.', 'netral')], 'ch08_selesai'),
-          t([say(HENDRA, 'ARSIP FESTIVAL MASIH BANYAK YANG TERSEBAR. CARI DI SETIAP SUDUT SEKOLAH.', 'serius')], 'ch02_selesai'),
+          t(
+            [say(HENDRA, 'PIALA PANJI SUDAH PULANG. DUA PULUH TAHUN PENANTIAN... TERIMA KASIH.', 'netral')],
+            'ch08_selesai',
+          ),
+          t(
+            [
+              say(
+                HENDRA,
+                'ARSIP FESTIVAL MASIH BANYAK YANG TERSEBAR. CARI DI SETIAP SUDUT SEKOLAH.',
+                'serius',
+              ),
+            ],
+            'ch02_selesai',
+          ),
           t([say(HENDRA, 'SEJARAH TIDAK HILANG. IA HANYA MENUNGGU ADA YANG MAU MEMBACANYA.', 'serius')]),
         ],
       },
@@ -150,13 +254,29 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     weather: 'cerah',
     npcs: [
       {
-        id: 'rizal', char: RIZAL, x: 330, y: 206, face: 'left', quest: 'pengganggu_lapangan',
+        id: 'rizal',
+        char: RIZAL,
+        x: 330,
+        y: 206,
+        face: 'left',
+        quest: 'pengganggu_lapangan',
         talk: [
-          t([say(RIZAL, 'LAPANGAN INI AMAN LAGI. AYO MAIN BERTIGA SEKOLAH!', 'percaya_diri')], 'ch08_selesai'),
+          t(
+            [say(RIZAL, 'LAPANGAN INI AMAN LAGI. AYO MAIN BERTIGA SEKOLAH!', 'percaya_diri')],
+            'ch08_selesai',
+          ),
           t([say(RIZAL, 'KADANG ADA YANG SUKA MENGGANGGU PERMAINAN DI LAPANGAN INI.', 'khawatir')]),
         ],
       },
-      { id: 'bima', char: BIMA, x: 160, y: 196, face: 'right', idle: 'main_basket', talk: [t([say(BIMA, 'TIGA ANGKA! ... YAH, MELESET.', 'percaya_diri')])] },
+      {
+        id: 'bima',
+        char: BIMA,
+        x: 160,
+        y: 196,
+        face: 'right',
+        idle: 'main_basket',
+        talk: [t([say(BIMA, 'TIGA ANGKA! ... YAH, MELESET.', 'percaya_diri')])],
+      },
     ],
   },
   {
@@ -165,9 +285,17 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'ruang_musik',
     npcs: [
       {
-        id: 'tiara', char: TIARA, x: 330, y: 190, face: 'left', quest: 'latihan_band',
+        id: 'tiara',
+        char: TIARA,
+        x: 330,
+        y: 190,
+        face: 'left',
+        quest: 'latihan_band',
         talk: [
-          t([say(TIARA, 'BANDKU AKAN TAMPIL DI FESTIVAL! LAGUNYA TENTANG TIGA SEKOLAH.', 'percaya_diri')], 'ch08_selesai'),
+          t(
+            [say(TIARA, 'BANDKU AKAN TAMPIL DI FESTIVAL! LAGUNYA TENTANG TIGA SEKOLAH.', 'percaya_diri')],
+            'ch08_selesai',
+          ),
           t([say(TIARA, 'AKU TIARA, KLUB MUSIK. LATIHAN BAND KAMI SERING TERGANGGU.', 'khawatir')]),
         ],
       },
@@ -179,9 +307,17 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'ruang_osis',
     npcs: [
       {
-        id: 'mega', char: MEGA, x: 330, y: 190, face: 'left', quest: 'proposal_osis',
+        id: 'mega',
+        char: MEGA,
+        x: 330,
+        y: 190,
+        face: 'left',
+        quest: 'proposal_osis',
         talk: [
-          t([say(MEGA, 'PROPOSAL FESTIVAL DISETUJUI SEMUA SEKOLAH. LUAR BIASA!', 'percaya_diri')], 'ch08_selesai'),
+          t(
+            [say(MEGA, 'PROPOSAL FESTIVAL DISETUJUI SEMUA SEKOLAH. LUAR BIASA!', 'percaya_diri')],
+            'ch08_selesai',
+          ),
           t([say(MEGA, 'PROPOSAL KAMI BELUM TUNTAS. ADA YANG TERUS MEMBUAT KERIBUTAN.', 'khawatir')]),
         ],
       },
@@ -193,7 +329,12 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'parkir_sepeda',
     npcs: [
       {
-        id: 'nisa', char: NISA, x: 330, y: 196, face: 'left', quest: 'sepeda_nisa',
+        id: 'nisa',
+        char: NISA,
+        x: 330,
+        y: 196,
+        face: 'left',
+        quest: 'sepeda_nisa',
         talk: [
           t([say(NISA, 'SEPEDAKU KEMBALI. TERIMA KASIH SUDAH MEMBANTU.', 'netral')], 'ch08_selesai'),
           t([say(NISA, 'AKU... TIDAK BANYAK BICARA. TAPI SEPEDAKU SERING DIGANGGU.', 'khawatir')]),
@@ -207,17 +348,27 @@ export const HUB_LOCATIONS: readonly HubLocation[] = [
     stage: 'kebun_sekolah',
     npcs: [
       {
-        id: 'eko', char: EKO, x: 330, y: 200, face: 'left', quest: 'kebun_pak_hendra',
+        id: 'eko',
+        char: EKO,
+        x: 330,
+        y: 200,
+        face: 'left',
+        quest: 'kebun_pak_hendra',
         talk: [
-          t([say(EKO, 'TOMATNYA SUDAH MERAH SEMUA. PAK HENDRA SENANG SEKALI.', 'percaya_diri')], 'ch08_selesai'),
+          t(
+            [say(EKO, 'TOMATNYA SUDAH MERAH SEMUA. PAK HENDRA SENANG SEKALI.', 'percaya_diri')],
+            'ch08_selesai',
+          ),
           t([say(EKO, 'KEBUN INI MILIK PAK HENDRA. KADANG ADA YANG MERUSAKNYA.', 'khawatir')]),
         ],
       },
       {
-        id: 'hendra', char: HENDRA, x: 170, y: 196, face: 'right',
-        talk: [
-          t([say(HENDRA, 'TANAMAN TIDAK PERNAH CURIGA. MEREKA CUMA BUTUH AIR DAN SABAR.', 'netral')]),
-        ],
+        id: 'hendra',
+        char: HENDRA,
+        x: 170,
+        y: 196,
+        face: 'right',
+        talk: [t([say(HENDRA, 'TANAMAN TIDAK PERNAH CURIGA. MEREKA CUMA BUTUH AIR DAN SABAR.', 'netral')])],
       },
     ],
   },
@@ -230,4 +381,3 @@ export function pickTalk(npc: HubNpc, hasFlag: (k: string) => boolean): readonly
   for (const tk of npc.talk) if (!tk.requires || hasFlag(tk.requires)) return tk.script;
   return [narasi('...')];
 }
-

@@ -23,9 +23,21 @@ export class Title extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0x000000);
     this.cameras.main.fadeIn(500, 0, 0, 0);
     this.add.image(0, 0, 'cover:240x135').setOrigin(0, 0).setScale(2);
-    this.add.rectangle(SUBTITLE_PATCH.x, SUBTITLE_PATCH.y, SUBTITLE_PATCH.w, SUBTITLE_PATCH.h, SUBTITLE_PATCH.color).setOrigin(0, 0);
-    new PixelText(this, LOGICAL_W / 2, SUBTITLE_PATCH.y + 6, 'JEJAK TIGA SEKOLAH', { color: COLORS.accent, origin: 0.5, align: 'center' }).setScale(2).setY(SUBTITLE_PATCH.y + 14);
-    this.prompt = new PixelText(this, LOGICAL_W / 2, LOGICAL_H - 26, 'TEKAN ENTER', { color: COLORS.text, origin: 0.5, align: 'center' });
+    this.add
+      .rectangle(SUBTITLE_PATCH.x, SUBTITLE_PATCH.y, SUBTITLE_PATCH.w, SUBTITLE_PATCH.h, SUBTITLE_PATCH.color)
+      .setOrigin(0, 0);
+    new PixelText(this, LOGICAL_W / 2, SUBTITLE_PATCH.y + 6, 'JEJAK TIGA SEKOLAH', {
+      color: COLORS.accent,
+      origin: 0.5,
+      align: 'center',
+    })
+      .setScale(2)
+      .setY(SUBTITLE_PATCH.y + 14);
+    this.prompt = new PixelText(this, LOGICAL_W / 2, LOGICAL_H - 26, 'TEKAN ENTER', {
+      color: COLORS.text,
+      origin: 0.5,
+      align: 'center',
+    });
     new PixelText(this, 6, LOGICAL_H - 12, `V${__APP_VERSION__}`, { color: COLORS.dim });
     this.input.on('pointerdown', () => this.go());
     audio.music('judul');
@@ -37,7 +49,9 @@ export class Title extends Phaser.Scene {
     this.leaving = true;
     audio.sfx('ui_confirm');
     this.cameras.main.fadeOut(250, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('MainMenu'));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
+      this.scene.start('MainMenu'),
+    );
   }
 
   override update(time: number): void {

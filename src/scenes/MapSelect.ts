@@ -29,7 +29,9 @@ export class MapSelect extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0x121a2e);
     this.cameras.main.fadeIn(200, 0, 0, 0);
     addPanel(this, 60, 14, 360, 242, 'PETA SEKOLAH');
-    new PixelText(this, 410, 22, formatMoney(game.profile.money), { color: COLORS.gold, origin: 1 }).setDepth(100).setOrigin(1, 0);
+    new PixelText(this, 410, 22, formatMoney(game.profile.money), { color: COLORS.gold, origin: 1 })
+      .setDepth(100)
+      .setOrigin(1, 0);
 
     const next = chapterById(game.profile.chapter);
     const items: MenuItem[] = [

@@ -48,7 +48,8 @@ export function applyUnlock(p: Profile, what: string): UnlockResult {
   if (!u) return { ok: false, toast: '', changed: false };
   switch (u.kind) {
     case 'move': {
-      if (!(MOVE_UNLOCKS as readonly string[]).includes(u.id)) return { ok: false, toast: '', changed: false };
+      if (!(MOVE_UNLOCKS as readonly string[]).includes(u.id))
+        return { ok: false, toast: '', changed: false };
       const key = u.id === 'double' ? 'doubleFinisher' : (u.id as keyof Profile['moves']);
       const changed = !p.moves[key];
       p.moves[key] = true;
@@ -65,7 +66,11 @@ export function applyUnlock(p: Profile, what: string): UnlockResult {
       const key = `loc_${u.id}`;
       const changed = p.flags[key] !== true;
       p.flags[key] = true;
-      return { ok: true, changed, toast: changed ? `LOKASI TERBUKA: ${u.id.replace(/_/g, ' ').toUpperCase()}` : '' };
+      return {
+        ok: true,
+        changed,
+        toast: changed ? `LOKASI TERBUKA: ${u.id.replace(/_/g, ' ').toUpperCase()}` : '',
+      };
     }
     case 'quest': {
       const changed = p.sideQuests[u.id] === undefined;

@@ -31,7 +31,13 @@ export class Backdrop {
     const plan = planBackdrop(stage, opts.weather, opts.rain);
     this.objs.push(scene.add.image(0, 0, plan.key).setOrigin(0, 0).setDepth(DEPTH_BG));
 
-    if (opts.crowd) this.objs.push(scene.add.image(0, 0, 'npc:formasi:' + opts.crowd).setOrigin(0, 0).setDepth(DEPTH_DECOR + 0.2));
+    if (opts.crowd)
+      this.objs.push(
+        scene.add
+          .image(0, 0, 'npc:formasi:' + opts.crowd)
+          .setOrigin(0, 0)
+          .setDepth(DEPTH_DECOR + 0.2),
+      );
     if (plan.envMatches) for (const d of DECOR[stage] ?? []) this.addLoop(d.fx, d.x, d.y);
     if (plan.rain) for (const [x, y] of PUDDLES[stage] ?? []) this.addLoop('genangan_beriak', x, y);
     if (BIRD_STAGES.has(stage) && BIRD_WEATHER.includes(opts.weather)) this.startBirds();

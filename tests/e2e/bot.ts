@@ -1,7 +1,9 @@
 import type { Page } from '@playwright/test';
 
 export const activeScenes = (page: Page) =>
-  page.evaluate(() => (window as unknown as { __game: Phaser.Game }).__game.scene.getScenes(true).map((s) => s.scene.key));
+  page.evaluate(() =>
+    (window as unknown as { __game: Phaser.Game }).__game.scene.getScenes(true).map((s) => s.scene.key),
+  );
 
 interface StageProbe {
   state: string;
@@ -61,15 +63,44 @@ export async function playStory(page: Page, o: BotOptions): Promise<Set<string>>
     if (process.env.BOT_LOG && Date.now() - lastLog > 8000) {
       lastLog = Date.now();
       const id = await page.evaluate(() => {
-        const st = (window as unknown as { __stage?: { screenDef?: { id: string }; state: string; inCutscene: boolean; player: { x: number; y: number; state: string; hp: number }; world: { fighters: { team: string; x: number; y: number; hp: number; dead: boolean; state: string; charKey: string }[] } } }).__stage;
+        const st = (
+          window as unknown as {
+            __stage?: {
+              screenDef?: { id: string };
+              state: string;
+              inCutscene: boolean;
+              player: { x: number; y: number; state: string; hp: number };
+              world: {
+                fighters: {
+                  team: string;
+                  x: number;
+                  y: number;
+                  hp: number;
+                  dead: boolean;
+                  state: string;
+                  charKey: string;
+                }[];
+              };
+            };
+          }
+        ).__stage;
         if (!st) return null;
-        return JSON.stringify({ id: st.screenDef?.id, st: st.state, p: [st.player.x | 0, st.player.y | 0, st.player.state, st.player.hp | 0], f: st.world.fighters.map((x) => [x.team, x.x | 0, x.y | 0, x.hp | 0, x.dead, x.state]) });
+        return JSON.stringify({
+          id: st.screenDef?.id,
+          st: st.state,
+          p: [st.player.x | 0, st.player.y | 0, st.player.state, st.player.hp | 0],
+          f: st.world.fighters.map((x) => [x.team, x.x | 0, x.y | 0, x.hp | 0, x.dead, x.state]),
+        });
       });
       console.log(Math.round((Date.now() - start) / 1000), scenes.join(','), id);
     }
     if (o.continueStory) {
       if (scenes.includes('Hub')) {
-        const done = await page.evaluate(() => (window as unknown as { __gs: { profile: { chapter: string } } }).__gs.profile.chapter === 'tamat');
+        const done = await page.evaluate(
+          () =>
+            (window as unknown as { __gs: { profile: { chapter: string } } }).__gs.profile.chapter ===
+            'tamat',
+        );
         if (done) break;
         await hold('ArrowRight', true);
         await page.waitForTimeout(100);
@@ -117,14 +148,19 @@ export async function playStory(page: Page, o: BotOptions): Promise<Set<string>>
       await hold('ArrowRight', true);
       if (s.state !== 'clear') await page.keyboard.press('KeyJ');
     } else {
-      const tg = s.enemies.reduce((a, b) => (Math.abs(a.x - s.px) + Math.abs(a.y - s.py) * 2 < Math.abs(b.x - s.px) + Math.abs(b.y - s.py) * 2 ? a : b));
+      const tg = s.enemies.reduce((a, b) =>
+        Math.abs(a.x - s.px) + Math.abs(a.y - s.py) * 2 < Math.abs(b.x - s.px) + Math.abs(b.y - s.py) * 2
+          ? a
+          : b,
+      );
       const dx = tg.x - s.px;
       const dy = tg.y - s.py;
       await hold('ArrowRight', dx > 22);
       await hold('ArrowLeft', dx < -22);
       await hold('ArrowDown', dy > 4);
       await hold('ArrowUp', dy < -4);
-      if (Math.abs(dx) <= 30 && Math.abs(dy) <= 8) await page.keyboard.press(Math.random() < 0.2 ? 'KeyK' : 'KeyJ');
+      if (Math.abs(dx) <= 30 && Math.abs(dy) <= 8)
+        await page.keyboard.press(Math.random() < 0.2 ? 'KeyK' : 'KeyJ');
     }
     await page.waitForTimeout(50);
   }

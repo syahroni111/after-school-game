@@ -17,10 +17,30 @@ import { portraitFor } from './portraits';
 import { STAGES } from './stages';
 import type { ScreenDef } from './stages';
 
-const WAIT_CONDS: readonly WaitCond[] = ['move', 'hit', 'combo', 'guard', 'parry', 'dodge', 'counter', 'special', 'dash'];
+const WAIT_CONDS: readonly WaitCond[] = [
+  'move',
+  'hit',
+  'combo',
+  'guard',
+  'parry',
+  'dodge',
+  'counter',
+  'special',
+  'dash',
+];
 const WEATHERS = ['cerah', 'berawan', 'hujan', 'sore', 'malam'];
 /** Bab yang direncanakan (GDD §3). Bab 2 sampai Epilog ditulis di M8; test M8 memastikan semuanya ada. */
-export const PLANNED_CHAPTERS = ['ch00', 'ch01', 'ch02', 'ch03', 'ch04', 'ch05', 'ch06', 'ch07', 'ch08'] as const;
+export const PLANNED_CHAPTERS = [
+  'ch00',
+  'ch01',
+  'ch02',
+  'ch03',
+  'ch04',
+  'ch05',
+  'ch06',
+  'ch07',
+  'ch08',
+] as const;
 const MAX_TITLE = 30;
 const MAX_HINT = 60;
 const MAX_NAME = 26;
@@ -34,7 +54,10 @@ export interface FlagUse {
 
 export function checkText(text: string, where: string, errs: string[]): void {
   const bad = findInvalidChars(text);
-  if (bad.length) errs.push(`${where}: karakter tidak didukung font: ${bad.map((c) => JSON.stringify(c)).join(' ')} dalam "${text.slice(0, 40)}"`);
+  if (bad.length)
+    errs.push(
+      `${where}: karakter tidak didukung font: ${bad.map((c) => JSON.stringify(c)).join(' ')} dalam "${text.slice(0, 40)}"`,
+    );
 }
 
 /** Memeriksa satu daftar perintah (termasuk cabang ifFlag). Mengisi `flags` bila diberikan. */
@@ -53,17 +76,22 @@ export function validateCommands(cmds: readonly Cmd[], where: string, flags?: Fl
           if (cmd.name.length > MAX_NAME) errs.push(`${at}: nama terlalu panjang`);
         }
         if (cmd.who !== 'narasi' && !CHARACTERS[cmd.who]) errs.push(`${at}: tokoh tidak dikenal: ${cmd.who}`);
-        if (cmd.face !== undefined && !EXPRESSIONS.includes(cmd.face)) errs.push(`${at}: ekspresi tidak dikenal: ${cmd.face}`);
+        if (cmd.face !== undefined && !EXPRESSIONS.includes(cmd.face))
+          errs.push(`${at}: ekspresi tidak dikenal: ${cmd.face}`);
         const hasPortrait = cmd.who !== 'narasi' && portraitFor(cmd.who) !== null;
         const lines = wrapText(cmd.text, dialogMaxChars(hasPortrait));
-        if (lines.length > DIALOG.maxLines) errs.push(`${at}: ${lines.length} baris (maks ${DIALOG.maxLines}) pada lebar ${dialogMaxChars(hasPortrait)} karakter: "${cmd.text.slice(0, 40)}"`);
+        if (lines.length > DIALOG.maxLines)
+          errs.push(
+            `${at}: ${lines.length} baris (maks ${DIALOG.maxLines}) pada lebar ${dialogMaxChars(hasPortrait)} karakter: "${cmd.text.slice(0, 40)}"`,
+          );
         break;
       }
       case 'spawn':
         if (!CHARACTERS[cmd.char]) errs.push(`${at}: karakter tidak dikenal: ${cmd.char}`);
         else {
           spawned.set(cmd.id, cmd.char);
-          if (cmd.anim && !hasCharAnim(cmd.char, cmd.anim)) errs.push(`${at}: ${cmd.char} tidak punya animasi ${cmd.anim}`);
+          if (cmd.anim && !hasCharAnim(cmd.char, cmd.anim))
+            errs.push(`${at}: ${cmd.char} tidak punya animasi ${cmd.anim}`);
         }
         break;
       case 'anim': {
@@ -73,13 +101,15 @@ export function validateCommands(cmds: readonly Cmd[], where: string, flags?: Fl
       }
       case 'move':
         if (cmd.x < -80 || cmd.x > 560) errs.push(`${at}: x di luar jangkauan: ${cmd.x}`);
-        if (cmd.y !== undefined && (cmd.y < 150 || cmd.y > 270)) errs.push(`${at}: y di luar area jalan: ${cmd.y}`);
+        if (cmd.y !== undefined && (cmd.y < 150 || cmd.y > 270))
+          errs.push(`${at}: y di luar area jalan: ${cmd.y}`);
         break;
       case 'wait':
         if (cmd.ms < 0 || cmd.ms > 20000) errs.push(`${at}: waktu tunggu tidak masuk akal: ${cmd.ms}`);
         break;
       case 'fade':
-        if (cmd.ms !== undefined && (cmd.ms < 0 || cmd.ms > 5000)) errs.push(`${at}: durasi fade tidak masuk akal`);
+        if (cmd.ms !== undefined && (cmd.ms < 0 || cmd.ms > 5000))
+          errs.push(`${at}: durasi fade tidak masuk akal`);
         break;
       case 'setFlag':
         flags?.set.add(cmd.key);
@@ -88,7 +118,8 @@ export function validateCommands(cmds: readonly Cmd[], where: string, flags?: Fl
         flags?.read.add(cmd.key);
         break;
       case 'spawnWave':
-        for (const s of cmd.spawns) if (!ENEMIES[s.enemy]) errs.push(`${at}: musuh tidak dikenal: ${s.enemy}`);
+        for (const s of cmd.spawns)
+          if (!ENEMIES[s.enemy]) errs.push(`${at}: musuh tidak dikenal: ${s.enemy}`);
         break;
       case 'music':
         if (!isSong(cmd.song)) errs.push(`${at}: lagu tidak dikenal: ${cmd.song}`);
@@ -100,7 +131,8 @@ export function validateCommands(cmds: readonly Cmd[], where: string, flags?: Fl
         if (!Number.isInteger(cmd.amount) || cmd.amount <= 0) errs.push(`${at}: jumlah uang tidak valid`);
         break;
       case 'giveArchive':
-        if (ARCHIVE_IDS.length > 0 && !ARCHIVE_IDS.includes(cmd.id)) errs.push(`${at}: arsip tidak dikenal: ${cmd.id}`);
+        if (ARCHIVE_IDS.length > 0 && !ARCHIVE_IDS.includes(cmd.id))
+          errs.push(`${at}: arsip tidak dikenal: ${cmd.id}`);
         break;
       case 'unlock': {
         if (!isValidUnlock(cmd.what)) errs.push(`${at}: unlock tidak valid: ${cmd.what}`);
@@ -115,7 +147,8 @@ export function validateCommands(cmds: readonly Cmd[], where: string, flags?: Fl
         break;
       case 'hint':
         checkText(cmd.text, at, errs);
-        if (cmd.text.length > MAX_HINT) errs.push(`${at}: petunjuk terlalu panjang (${cmd.text.length} > ${MAX_HINT})`);
+        if (cmd.text.length > MAX_HINT)
+          errs.push(`${at}: petunjuk terlalu panjang (${cmd.text.length} > ${MAX_HINT})`);
         break;
       case 'waitFor':
         if (!WAIT_CONDS.includes(cmd.cond)) errs.push(`${at}: syarat tidak dikenal: ${cmd.cond}`);
@@ -132,11 +165,13 @@ export function validateScreen(s: ScreenDef, flags?: FlagUse): string[] {
   const errs: string[] = [];
   const w = `layar ${s.id}`;
   if (!STAGES.some((x) => x.id === s.stage)) errs.push(`${w}: stage tidak dikenal: ${s.stage}`);
-  if (s.weather !== undefined && !WEATHERS.includes(s.weather)) errs.push(`${w}: cuaca tidak dikenal: ${s.weather}`);
+  if (s.weather !== undefined && !WEATHERS.includes(s.weather))
+    errs.push(`${w}: cuaca tidak dikenal: ${s.weather}`);
   if (s.label !== undefined) checkText(s.label, `${w} label`, errs);
   if (s.music !== undefined && !isSong(s.music)) errs.push(`${w}: lagu tidak dikenal: ${s.music}`);
   if (s.playerChar !== undefined && !CHARACTERS[s.playerChar]) errs.push(`${w}: tokoh pemain tidak dikenal`);
-  if (s.crowd !== undefined && !hasTexture('npc:formasi:' + s.crowd)) errs.push(w + ': formasi penonton tidak dikenal: ' + s.crowd);
+  if (s.crowd !== undefined && !hasTexture('npc:formasi:' + s.crowd))
+    errs.push(w + ': formasi penonton tidak dikenal: ' + s.crowd);
   if (s.playerName !== undefined) checkText(s.playerName, w + ' playerName', errs);
   if (s.duet && !s.allyArga) errs.push(w + ': duet butuh allyArga');
   if (s.cutsceneOnly && s.spawns.length > 0) errs.push(`${w}: cutsceneOnly tidak boleh punya musuh`);
@@ -144,7 +179,11 @@ export function validateScreen(s: ScreenDef, flags?: FlagUse): string[] {
   for (const sp of s.spawns) if (!ENEMIES[sp.enemy]) errs.push(`${w}: musuh tidak dikenal: ${sp.enemy}`);
   const bosses = s.spawns.filter((x) => x.boss).length;
   if (bosses > 1) errs.push(`${w}: lebih dari satu bos`);
-  for (const [name, script] of [['before', s.before], ['during', s.during], ['after', s.after]] as const) {
+  for (const [name, script] of [
+    ['before', s.before],
+    ['during', s.during],
+    ['after', s.after],
+  ] as const) {
     if (script) errs.push(...validateCommands(script, `${w}.${name}`, flags));
   }
   return errs;
@@ -154,7 +193,12 @@ export function validateChapter(ch: ChapterDef, flags?: FlagUse): string[] {
   const errs: string[] = [];
   checkText(ch.title, `bab ${ch.id} judul`, errs);
   if (ch.screens.length === 0) errs.push(`bab ${ch.id}: tidak punya layar`);
-  if (ch.next !== undefined && !CHAPTERS.some((c) => c.id === ch.next) && !(PLANNED_CHAPTERS as readonly string[]).includes(ch.next)) errs.push(`bab ${ch.id}: bab berikutnya tidak ada: ${ch.next}`);
+  if (
+    ch.next !== undefined &&
+    !CHAPTERS.some((c) => c.id === ch.next) &&
+    !(PLANNED_CHAPTERS as readonly string[]).includes(ch.next)
+  )
+    errs.push(`bab ${ch.id}: bab berikutnya tidak ada: ${ch.next}`);
   for (const s of ch.screens) errs.push(...validateScreen(s, flags));
   return errs;
 }
@@ -174,6 +218,7 @@ export function validateAll(chapters: readonly ChapterDef[] = CHAPTERS): string[
       ids.add(s.id);
     }
   }
-  for (const k of flags.read) if (!flags.set.has(k) && !SYSTEM_FLAG.test(k)) errs.push(`flag dibaca tetapi tidak pernah diset: ${k}`);
+  for (const k of flags.read)
+    if (!flags.set.has(k) && !SYSTEM_FLAG.test(k)) errs.push(`flag dibaca tetapi tidak pernah diset: ${k}`);
   return errs;
 }

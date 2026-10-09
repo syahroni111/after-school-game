@@ -3,7 +3,9 @@ import type { Page } from '@playwright/test';
 import { trackErrors, waitScene } from './helpers';
 
 const activeScenes = (page: Page) =>
-  page.evaluate(() => (window as unknown as { __game: Phaser.Game }).__game.scene.getScenes(true).map((s) => s.scene.key));
+  page.evaluate(() =>
+    (window as unknown as { __game: Phaser.Game }).__game.scene.getScenes(true).map((s) => s.scene.key),
+  );
 
 /** Menu: Title -> MainMenu -> MULAI BARU -> slot 1 -> kesulitan NORMAL -> cerita dimulai. */
 async function startNewGame(page: Page) {
@@ -71,7 +73,9 @@ test('M6: menu -> mulai baru -> dialog pertama muncul (tanpa cheat)', async ({ p
   expect(t.errors).toEqual([]);
 });
 
-test('M6: Prolog dan Bab 1 dimainkan sampai tamat bab dan tersimpan (bot, cheat ?debug=1)', async ({ page }) => {
+test('M6: Prolog dan Bab 1 dimainkan sampai tamat bab dan tersimpan (bot, cheat ?debug=1)', async ({
+  page,
+}) => {
   test.setTimeout(600_000);
   const t = trackErrors(page);
   await page.goto('/?debug=1&god=1&fast=1&power=8');
@@ -130,14 +134,19 @@ test('M6: Prolog dan Bab 1 dimainkan sampai tamat bab dan tersimpan (bot, cheat 
       for (const c of ['ArrowLeft', 'ArrowUp', 'ArrowDown']) await hold(c, false);
       await hold('ArrowRight', true);
     } else if (s.enemies.length > 0) {
-      const tg = s.enemies.reduce((a, b) => (Math.abs(a.x - s.px) + Math.abs(a.y - s.py) * 2 < Math.abs(b.x - s.px) + Math.abs(b.y - s.py) * 2 ? a : b));
+      const tg = s.enemies.reduce((a, b) =>
+        Math.abs(a.x - s.px) + Math.abs(a.y - s.py) * 2 < Math.abs(b.x - s.px) + Math.abs(b.y - s.py) * 2
+          ? a
+          : b,
+      );
       const dx = tg.x - s.px;
       const dy = tg.y - s.py;
       await hold('ArrowRight', dx > 22);
       await hold('ArrowLeft', dx < -22);
       await hold('ArrowDown', dy > 4);
       await hold('ArrowUp', dy < -4);
-      if (Math.abs(dx) <= 30 && Math.abs(dy) <= 8) await page.keyboard.press(Math.random() < 0.2 ? 'KeyK' : 'KeyJ');
+      if (Math.abs(dx) <= 30 && Math.abs(dy) <= 8)
+        await page.keyboard.press(Math.random() < 0.2 ? 'KeyK' : 'KeyJ');
     } else {
       // Tanpa musuh (mis. tutorial gerak): berjalan ke kanan.
       for (const c of ['ArrowLeft', 'ArrowUp', 'ArrowDown']) await hold(c, false);

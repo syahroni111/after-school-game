@@ -30,7 +30,8 @@ export function defaultSettings(): Settings {
   };
 }
 
-const clamp01 = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d);
+const clamp01 = (v: unknown, d: number): number =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d;
 
 /** Membersihkan data tersimpan: nilai tak valid diganti bawaan, tombol hanya untuk aksi yang dikenal. */
 export function migrateSettings(raw: unknown): Settings {
@@ -49,7 +50,8 @@ export function migrateSettings(raw: unknown): Settings {
   if (r.bindings && typeof r.bindings === 'object') {
     for (const a of Object.keys(DEFAULT_KEYS) as Action[]) {
       const v = (r.bindings as Record<string, unknown>)[a];
-      if (Array.isArray(v) && v.length > 0 && v.every((k) => typeof k === 'string')) out.bindings[a] = v as string[];
+      if (Array.isArray(v) && v.length > 0 && v.every((k) => typeof k === 'string'))
+        out.bindings[a] = v as string[];
     }
   }
   return out;

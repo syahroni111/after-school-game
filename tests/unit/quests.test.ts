@@ -78,7 +78,9 @@ describe('Mode Bebas dan Boss Rush', () => {
   });
   it('boss rush memuat setiap bos cerita sekali, berurutan, satu bos per layar', () => {
     const rush = bossRushScreens(CHAPTERS);
-    const expected = CHAPTERS.flatMap((c) => c.screens.flatMap((s) => s.spawns.filter((sp) => sp.boss).map((sp) => sp.enemy)));
+    const expected = CHAPTERS.flatMap((c) =>
+      c.screens.flatMap((s) => s.spawns.filter((sp) => sp.boss).map((sp) => sp.enemy)),
+    );
     expect(rush.map((s) => s.spawns[0]?.enemy)).toEqual(expected);
     expect(rush.every((s) => s.spawns.length === 1)).toBe(true);
     expect(rush.length).toBeGreaterThanOrEqual(7);
@@ -88,7 +90,17 @@ describe('Mode Bebas dan Boss Rush', () => {
 
 describe('Seluruh cerita', () => {
   it('Prolog sampai Epilog berantai tanpa putus dan berakhir di ch08', () => {
-    expect(CHAPTERS.map((c) => c.id)).toEqual(['ch00', 'ch01', 'ch02', 'ch03', 'ch04', 'ch05', 'ch06', 'ch07', 'ch08']);
+    expect(CHAPTERS.map((c) => c.id)).toEqual([
+      'ch00',
+      'ch01',
+      'ch02',
+      'ch03',
+      'ch04',
+      'ch05',
+      'ch06',
+      'ch07',
+      'ch08',
+    ]);
     CHAPTERS.slice(0, -1).forEach((c, i) => expect(c.next).toBe(CHAPTERS[i + 1]?.id));
     expect(CHAPTERS[CHAPTERS.length - 1]?.next).toBeUndefined();
   });

@@ -5,9 +5,17 @@ import type { FlagValue } from '../systems/Profile';
 export type Expr = 'netral' | 'serius' | 'marah' | 'percaya_diri' | 'khawatir' | 'terkejut';
 export type Dir = 'left' | 'right';
 /** Syarat tutorial: dipantau dari aksi pemain. */
-export type WaitCond = 'move' | 'hit' | 'combo' | 'guard' | 'parry' | 'dodge' | 'counter' | 'special' | 'dash';
+export type WaitCond =
+  'move' | 'hit' | 'combo' | 'guard' | 'parry' | 'dodge' | 'counter' | 'special' | 'dash';
 
-export const EXPRESSIONS: readonly Expr[] = ['netral', 'serius', 'marah', 'percaya_diri', 'khawatir', 'terkejut'];
+export const EXPRESSIONS: readonly Expr[] = [
+  'netral',
+  'serius',
+  'marah',
+  'percaya_diri',
+  'khawatir',
+  'terkejut',
+];
 
 export interface SayCmd {
   c: 'say';
@@ -59,6 +67,12 @@ export function walkCmds(cmds: readonly Cmd[], visit: (cmd: Cmd) => void): void 
 }
 
 // Pembantu penulisan data cerita yang ringkas dan terbaca.
-export const say = (who: string, text: string, face?: Expr, extra: Partial<SayCmd> = {}): SayCmd => ({ c: 'say', who, text, face, ...extra });
+export const say = (who: string, text: string, face?: Expr, extra: Partial<SayCmd> = {}): SayCmd => ({
+  c: 'say',
+  who,
+  text,
+  face,
+  ...extra,
+});
 export const narasi = (text: string): SayCmd => ({ c: 'say', who: 'narasi', text });
 export const wait = (ms: number): Cmd => ({ c: 'wait', ms });

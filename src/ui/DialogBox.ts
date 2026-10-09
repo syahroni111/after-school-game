@@ -38,11 +38,28 @@ export class DialogBox {
   private hasPortrait = false;
 
   constructor(scene: Phaser.Scene) {
-    this.box = addNineSlice(scene, DIALOG.boxX, DIALOG.boxY, DIALOG.boxW, DIALOG.boxH, 'ui:kotak_dialog_9slice').setDepth(DEPTH).setScrollFactor(0);
+    this.box = addNineSlice(
+      scene,
+      DIALOG.boxX,
+      DIALOG.boxY,
+      DIALOG.boxW,
+      DIALOG.boxH,
+      'ui:kotak_dialog_9slice',
+    )
+      .setDepth(DEPTH)
+      .setScrollFactor(0);
     this.name = new PixelText(scene, 0, 0, '', { color: COLORS.cyan }).setDepth(DEPTH + 2).setScrollFactor(0);
     this.body = new PixelText(scene, 0, 0, '', { color: COLORS.text }).setDepth(DEPTH + 2).setScrollFactor(0);
-    this.frame = scene.add.image(0, 0, 'ui:bingkai_potret').setOrigin(0, 0).setDepth(DEPTH + 1).setScrollFactor(0);
-    this.face = scene.add.image(0, 0, 'portrait:A01_protagonis', 0).setOrigin(0, 0).setDepth(DEPTH + 1.5).setScrollFactor(0);
+    this.frame = scene.add
+      .image(0, 0, 'ui:bingkai_potret')
+      .setOrigin(0, 0)
+      .setDepth(DEPTH + 1)
+      .setScrollFactor(0);
+    this.face = scene.add
+      .image(0, 0, 'portrait:A01_protagonis', 0)
+      .setOrigin(0, 0)
+      .setDepth(DEPTH + 1.5)
+      .setScrollFactor(0);
     this.parts.push(this.box, this.name, this.body, this.frame, this.face);
     for (const p of this.parts) (p as unknown as Phaser.GameObjects.Components.Visible).setVisible(false);
     scene.input.on('pointerdown', () => this.advance());
@@ -59,7 +76,8 @@ export class DialogBox {
     const maxChars = dialogMaxChars(this.hasPortrait);
     const lines = wrapText(spec.text, maxChars);
     this.pages = [];
-    for (let i = 0; i < lines.length; i += DIALOG.maxLines) this.pages.push(lines.slice(i, i + DIALOG.maxLines).join('\n'));
+    for (let i = 0; i < lines.length; i += DIALOG.maxLines)
+      this.pages.push(lines.slice(i, i + DIALOG.maxLines).join('\n'));
     if (this.pages.length === 0) this.pages = [''];
     this.page = 0;
     this.layout(spec, portrait);
@@ -91,7 +109,12 @@ export class DialogBox {
         this.face.setPosition(fx + inset - 16, fy + inset - 4);
       }
       this.frame.setPosition(fx, fy);
-      if (!right) textX = DIALOG.boxX + DIALOG.padX + (portrait.kind === 'small' ? DIALOG.smallFrame : DIALOG.portraitFrame) + 4;
+      if (!right)
+        textX =
+          DIALOG.boxX +
+          DIALOG.padX +
+          (portrait.kind === 'small' ? DIALOG.smallFrame : DIALOG.portraitFrame) +
+          4;
     }
     this.name.setText(spec.name ?? '').setPosition(textX, DIALOG.boxY + DIALOG.nameY);
     this.body.setPosition(textX, DIALOG.boxY + DIALOG.textY);

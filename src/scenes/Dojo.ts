@@ -63,15 +63,34 @@ export class Dojo extends Phaser.Scene {
     const items: MenuItem[] = DOJO_MOVES.map((m) => ({
       label: () => {
         const st = dojoStatus(game.profile, m.id);
-        const tag = st === 'dimiliki' ? 'DIKUASAI' : st === 'terkunci' ? 'TERKUNCI' : st === 'cerita' ? 'DARI CERITA' : formatMoney(m.price);
+        const tag =
+          st === 'dimiliki'
+            ? 'DIKUASAI'
+            : st === 'terkunci'
+              ? 'TERKUNCI'
+              : st === 'cerita'
+                ? 'DARI CERITA'
+                : formatMoney(m.price);
         return `${m.label.padEnd(27)}${tag.padStart(13)}`;
       },
       onSelect: () => this.buy(m.id),
     }));
-    items.push({ label: 'LATIH TANDING: GILANG', onSelect: () => this.practice('gilang', 'LATIH TANDING GILANG') });
+    items.push({
+      label: 'LATIH TANDING: GILANG',
+      onSelect: () => this.practice('gilang', 'LATIH TANDING GILANG'),
+    });
     items.push({ label: 'LATIH TANDING: BIMA', onSelect: () => this.practice('bima', 'LATIH TANDING BIMA') });
     items.push({ label: 'KEMBALI', onSelect: () => this.leave() });
-    this.menu = new Menu(this, { x: 28, y: 32, items, width: LOGICAL_W - 56, lineHeight: 16, depth: 110, onBack: () => this.leave(), onMove: () => audio.sfx('ui_move') });
+    this.menu = new Menu(this, {
+      x: 28,
+      y: 32,
+      items,
+      width: LOGICAL_W - 56,
+      lineHeight: 16,
+      depth: 110,
+      onBack: () => this.leave(),
+      onMove: () => audio.sfx('ui_move'),
+    });
   }
 
   private buy(id: (typeof DOJO_MOVES)[number]['id']): void {

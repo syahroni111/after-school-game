@@ -25,7 +25,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
 - [x] M7 — Hub, Kantin, Dojo, Peta, Arsip
 - [x] M8 — Bab 2 sampai Epilog + konten sampingan
-- [ ] M9 — Audio, pengaturan, polish
+- [x] M9 — Audio, pengaturan, polish
 - [ ] M10 — Rilis itch.io
 
 ## Keputusan
@@ -152,6 +152,22 @@ Keputusan M8:
 - Setelah Epilog: Kredit lalu Waktu Bebas; `profile.chapter = 'tamat'` selalu membuka Hub.
 - Bug nyata yang ditemukan e2e dan diperbaiki: (1) `Backdrop.destroy` melempar saat membongkar filter sepia sehingga layar berikutnya tidak pernah mulai; (2) sekutu AI berdiri di sisi kanan pemain dan menghalangi jalan ke penanda LANJUT: sekarang selalu mengikuti di belakang pemain dan pemain/sekutu saling menembus; (3) hub memuat 6 lokasi Cerita Sekolah yang tidak pernah dibuka cerita: ditambah `unlock location` dan validatornya.
 - E2E timing-sensitive (Dojo, FPS M4) goyah saat mesin dipakai aplikasi lain; ambang FPS test M4 diturunkan ke 30 (headless dengan GL perangkat lunak), hasil lain tidak berubah.
+
+## M9 — selesai
+Rencana: sintesis audio (`sfxRecipes.ts` data + `Sfx.ts`), sequencer (`songTheory.ts` murni + 6 lagu di `audio/songs/*.ts` + `Music.ts`), `Engine.ts` (satu AudioContext, dibuat setelah input pertama), scene `Settings`, rebind (`Rebind.ts` murni), skala layar (`Display.ts`), kotak hit (`HitboxOverlay.ts`), jeda otomatis saat tab kehilangan fokus, Prettier sekali.
+- [x] **Tidak ada error konsol selama 1 playthrough**: e2e cerita utuh dari menu sampai Kredit lalu Hub (34 menit, bot, audio aktif) menegaskan `errors = []` dan tidak ada respons HTTP ≥ 400. Seluruh e2e (35 tes) lulus; unit 228 lulus.
+- [x] **Opsi tersimpan**: e2e Pengaturan mengubah volume musik/efek, skala layar (2X dipasang pada host 960 px), kotak hit, kurangi guncangan/kilat, dan tombol (PUKUL RINGAN → X), membaca `afterschool.settings.v1`, memuat ulang halaman, dan semuanya tetap. Kesulitan bisa diubah dari menu jeda Waktu Bebas atau Jeda (tersimpan di slot).
+- [x] **Profil performa**: di headless Chrome dengan GL perangkat lunak (SwiftShader, tanpa GPU) layar uji dengan 4–5 petarung dan efek mencapai rata-rata 50 FPS (e2e M4 mencatat 50,5; 37–40 saat mesin dibebani aplikasi lain). Di GPU nyata, tidak ada pekerjaan per-frame yang berat (logika tetap 60 Hz, efek di-pool). F3 di build dev menampilkan FPS dan jumlah petarung. **Catatan jujur**: angka 60 FPS di laptop menengah belum diukur di perangkat keras sungguhan.
+- [x] Screenshot: `M9_settings.png`, `M9_rebind.png`, `M9_hitbox.png`.
+
+Keputusan M9:
+- **Audio**: efek gaya sfxr (osilator + luncuran frekuensi + noise bandpass + arpeggio pendek) dari tabel `SFX_RECIPES`; maksimum 20 suara bersamaan dan efek yang sama dalam 30 ms dibuang. Musik: 2 pulse (duty 25% dan 50% lewat `PeriodicWave`), 1 triangle, 1 noise (kick/snare/hat), jadwal dengan lookahead 140 ms. Enam lagu orisinal sebagai data nada (judul C minor 92 BPM, sekolah C major 104, tempur A minor 152, bos D minor 168, kilas balik D minor 76, festival C major 132). Test unit memastikan semua token sah, panjang jalur sama, kelipatan birama, dan tiap nama SFX yang ditulis di kode ada di daftar (nama tak dikenal akan diam-diam tidak berbunyi).
+- AudioContext dibuat/dilanjutkan pada `pointerdown`/`keydown` pertama, ditangguhkan saat tab tersembunyi. Volume musik dan efek terpisah, tersimpan di pengaturan. Tanpa Web Audio, game tetap berjalan tanpa suara.
+- **Rebind**: hanya aksi permainan (bukan menu); satu tombol hanya untuk satu aksi (bentrok ditukar); Enter/F5/F11/F12/Tab/Alt/Meta tidak boleh dipakai. Tombol tersimpan dan diterapkan saat boot.
+- **Jeda otomatis**: event BLUR Phaser memanggil `Stage.requestPause()`. Pengaturan bisa dibuka dari menu Jeda (overlay di atas Jeda).
+- **Balancing**: tabel kesulitan tidak diubah (Mudah/Normal/Sulit: penyerang bersamaan 1/2/3, damage musuh ×0,75/1/1,25, HP musuh ×0,85/1/1,2, jeda AI 24/14/8 tick, cooldown ×1,3/1/0,75; token terbukti dibatasi di simulasi). Bot naif (hanya memukul, tanpa tangkis) tanpa cheat di Normal mengalahkan Prolog dan Bab 1 tetapi kalah di layar ketiga Bab 2, layar kedua Bab 4, dan layar pertama Bab 7: kesulitan menanjak seperti yang dirancang dan menuntut tangkis/hindar atau Kantin. Tidak ada angka yang diubah karena tidak ada bukti ketidakseimbangan dari pemain nyata; Mudah tersedia.
+- **Atlas tekstur tidak dibuat**: 245 entri manifest, jauh di bawah batas 600 file. Prettier dijalankan sekali (`.prettierignore` untuk berkas hasil generate, dist, public, docs).
+- Cheat dan hook dev (`__game`, `__stage`, `__hub`, `__gs`, `__audio`) hanya aktif di build dev kecuali `__game`, yang dipakai verifikasi zip.
 
 ## Masalah terbuka
 - (belum ada)

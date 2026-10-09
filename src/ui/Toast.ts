@@ -11,9 +11,14 @@ export function showToast(scene: Phaser.Scene, text: string, ms = 2400, color: n
   const stack = active.get(scene) ?? [];
   active.set(scene, stack);
   const y = 52 + stack.length * 16;
-  const label = new PixelText(scene, LOGICAL_W / 2, y + 3, text, { color, origin: 0.5, align: 'center' }).setDepth(DEPTH + 1).setScrollFactor(0);
+  const label = new PixelText(scene, LOGICAL_W / 2, y + 3, text, { color, origin: 0.5, align: 'center' })
+    .setDepth(DEPTH + 1)
+    .setScrollFactor(0);
   const w = Math.max(60, label.width + 16);
-  const bg = scene.add.rectangle(LOGICAL_W / 2, y + 7, w, 14, 0x121a2e, 0.88).setDepth(DEPTH).setScrollFactor(0);
+  const bg = scene.add
+    .rectangle(LOGICAL_W / 2, y + 7, w, 14, 0x121a2e, 0.88)
+    .setDepth(DEPTH)
+    .setScrollFactor(0);
   const group: Phaser.GameObjects.GameObject[] = [bg, label];
   stack.push(group);
   scene.tweens.add({

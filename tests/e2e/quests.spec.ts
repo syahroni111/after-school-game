@@ -16,11 +16,17 @@ interface Prof {
   sideQuests: Record<string, string>;
   cleared: boolean;
 }
-const profile = (page: Page) => page.evaluate(() => JSON.parse(JSON.stringify((window as unknown as { __gs: { profile: unknown } }).__gs.profile))) as Promise<Prof>;
+const profile = (page: Page) =>
+  page.evaluate(() =>
+    JSON.parse(JSON.stringify((window as unknown as { __gs: { profile: unknown } }).__gs.profile)),
+  ) as Promise<Prof>;
 
 /** Dari Hub: bicara dengan pemberi misi, terima, lalu mainkan sampai kembali ke Hub. */
 async function runQuest(page: Page, npc: { x: number; y: number }, onStage?: () => Promise<void>) {
-  await page.evaluate((n) => (window as unknown as { __hub: HubInternals }).__hub.player.setPos(n.x - 30, n.y), npc);
+  await page.evaluate(
+    (n) => (window as unknown as { __hub: HubInternals }).__hub.player.setPos(n.x - 30, n.y),
+    npc,
+  );
   await page.waitForTimeout(150);
   await page.keyboard.press('KeyE');
   let staged = false;
@@ -34,7 +40,8 @@ async function runQuest(page: Page, npc: { x: number; y: number }, onStage?: () 
       const h = (window as unknown as { __hub?: HubInternals }).__hub;
       return h ? { dialog: h.host.dialog.active, menu: h.menu !== null, busy: h.busy } : null;
     });
-    if (st?.dialog || st?.menu) await page.keyboard.press('Enter'); // dialog lanjut / TERIMA
+    if (st?.dialog || st?.menu)
+      await page.keyboard.press('Enter'); // dialog lanjut / TERIMA
     else if (st && !st.busy && i % 4 === 0) await page.keyboard.press('KeyE'); // belum terpicu
     await page.waitForTimeout(220);
   }
@@ -52,7 +59,9 @@ async function runQuest(page: Page, npc: { x: number; y: number }, onStage?: () 
   }
 }
 
-test('M8: Cerita Sekolah BUKU YANG HILANG - gagal tanpa buku, sukses dengan buku, hadiah sekali', async ({ page }) => {
+test('M8: Cerita Sekolah BUKU YANG HILANG - gagal tanpa buku, sukses dengan buku, hadiah sekali', async ({
+  page,
+}) => {
   test.setTimeout(480_000);
   const t = trackErrors(page);
   await page.goto('/?debug=1&god=1&fast=1&power=8&chapter=ch03&step=0&scene=Hub&location=perpustakaan');
@@ -73,7 +82,8 @@ test('M8: Cerita Sekolah BUKU YANG HILANG - gagal tanpa buku, sukses dengan buku
   // 2) ambil ketiga buku (dipalsukan lewat flag), menang: hadiah diberikan
   await runQuest(page, { x: 330, y: 192 }, async () => {
     await page.evaluate(() => {
-      const f = (window as unknown as { __gs: { profile: { flags: Record<string, boolean> } } }).__gs.profile.flags;
+      const f = (window as unknown as { __gs: { profile: { flags: Record<string, boolean> } } }).__gs.profile
+        .flags;
       f.item_buku_1 = f.item_buku_2 = f.item_buku_3 = true;
     });
   });
@@ -104,7 +114,8 @@ test('M8: Mode Bebas dan Boss Rush terbuka setelah tamat', async ({ page }) => {
   await page.goto('/?debug=1&god=1&fast=1&power=8&chapter=ch08&step=2&scene=Hub&location=halaman');
   await waitScene(page, 'Hub');
   await page.evaluate(() => {
-    const g = (window as unknown as { __gs: { profile: { cleared: boolean; unlockedChars: string[] } } }).__gs;
+    const g = (window as unknown as { __gs: { profile: { cleared: boolean; unlockedChars: string[] } } })
+      .__gs;
     g.profile.cleared = true;
     g.profile.unlockedChars.push('B01_pemimpin_rival');
   });
@@ -127,7 +138,11 @@ test('M8: Mode Bebas dan Boss Rush terbuka setelah tamat', async ({ page }) => {
   }
   await page.keyboard.press('Enter');
   await waitScene(page, 'Stage', 20_000);
-  const first = await page.evaluate(() => (window as unknown as { __stage: { screenDef: { id: string; spawns: { enemy: string }[] } } }).__stage.screenDef);
+  const first = await page.evaluate(
+    () =>
+      (window as unknown as { __stage: { screenDef: { id: string; spawns: { enemy: string }[] } } }).__stage
+        .screenDef,
+  );
   expect(first.id.startsWith('rush_')).toBe(true);
   expect(first.spawns).toHaveLength(1);
   const prof0 = await profile(page);
@@ -145,11 +160,17 @@ test('M8: Duet Panji - meteran penuh + J dan K membuat Arga ikut mendorong', asy
   await page.goto('/?debug=1&god=1&fast=1&chapter=ch07&step=1');
   await waitScene(page, 'Stage');
   await page.locator('canvas').click({ position: { x: 20, y: 20 } });
-  type S = { duetHits: number; state: string; ally: { state: string; move: { id: string } | null }; world: { fighters: { team: string }[] } };
+  type S = {
+    duetHits: number;
+    state: string;
+    ally: { state: string; move: { id: string } | null };
+    world: { fighters: { team: string }[] };
+  };
   // lewati cutscene pembuka
   for (let i = 0; i < 40; i++) {
     const st = await page.evaluate(() => {
-      const s = (window as unknown as { __stage: { state: string; host: { dialog: { active: boolean } } } }).__stage;
+      const s = (window as unknown as { __stage: { state: string; host: { dialog: { active: boolean } } } })
+        .__stage;
       return { state: s.state, dialog: s.host.dialog.active };
     });
     if (st.state === 'fight') break;
@@ -172,13 +193,17 @@ test('M8: Duet Panji - meteran penuh + J dan K membuat Arga ikut mendorong', asy
 
 test('M8: tangkapan layar sepia (Bab 5) dan penonton (Bab 3)', async ({ page }) => {
   const t = trackErrors(page);
-  for (const [chapter, step, name] of [['ch05', 1, 'M8_sepia'], ['ch03', 1, 'M8_penonton']] as const) {
+  for (const [chapter, step, name] of [
+    ['ch05', 1, 'M8_sepia'],
+    ['ch03', 1, 'M8_penonton'],
+  ] as const) {
     await page.goto(`/?debug=1&god=1&fast=1&chapter=${chapter}&step=${step}`);
     await waitScene(page, 'Stage');
     await page.locator('canvas').click({ position: { x: 20, y: 20 } });
     for (let i = 0; i < 40; i++) {
       const st = await page.evaluate(() => {
-        const s = (window as unknown as { __stage: { state: string; host: { dialog: { active: boolean } } } }).__stage;
+        const s = (window as unknown as { __stage: { state: string; host: { dialog: { active: boolean } } } })
+          .__stage;
         return { state: s.state, dialog: s.host.dialog.active };
       });
       if (st.state === 'fight' && !st.dialog) break;

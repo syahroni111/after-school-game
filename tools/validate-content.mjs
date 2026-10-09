@@ -47,7 +47,9 @@ try {
   const contentErrors = (await server.ssrLoadModule('/src/data/validateWorld.ts')).validateEverything();
   for (const e of contentErrors) fail(e);
   const screens = chapters.reduce((n, c) => n + c.screens.length, 0);
-  console.log(`validate-content: ${chapters.length} bab, ${screens} layar cerita diperiksa (teks, tokoh, animasi, stage, musuh, flag).`);
+  console.log(
+    `validate-content: ${chapters.length} bab, ${screens} layar cerita diperiksa (teks, tokoh, animasi, stage, musuh, flag).`,
+  );
 } finally {
   await server.close();
 }

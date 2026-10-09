@@ -38,7 +38,12 @@ describe('SaveSystem', () => {
     p.step = 2;
     p.flags.sudah_kenal_dimas = true;
     expect(s.save(1, p)).toBe(true);
-    expect(s.load(1)).toMatchObject({ money: 4200, chapter: 'ch01', step: 2, flags: { sudah_kenal_dimas: true } });
+    expect(s.load(1)).toMatchObject({
+      money: 4200,
+      chapter: 'ch01',
+      step: 2,
+      flags: { sudah_kenal_dimas: true },
+    });
     expect(s.load(0)).toBeNull();
     expect(s.load(2)).toBeNull();
   });
@@ -92,7 +97,13 @@ describe('SaveSystem', () => {
     const old = { version: 1, chapter: 'ch00', step: 3, money: 50 };
     const p = migrateProfile(old);
     expect(p).not.toBeNull();
-    expect(p?.moves).toEqual({ badan: false, dash: false, push: false, counter: false, doubleFinisher: false });
+    expect(p?.moves).toEqual({
+      badan: false,
+      dash: false,
+      push: false,
+      counter: false,
+      doubleFinisher: false,
+    });
     expect(p?.unlockedChars).toEqual(['A01_protagonis']);
     expect(p?.bonus.kekuatan).toBe(0);
   });
@@ -101,7 +112,12 @@ describe('SaveSystem', () => {
     const cfg = { ...defaultSettings(), musicVol: 0.2, scale: '3' as const, reduceShake: true };
     expect(s.saveSettings(cfg)).toBe(true);
     expect(s.loadSettings()).toMatchObject({ musicVol: 0.2, scale: '3', reduceShake: true });
-    const dirty = migrateSettings({ musicVol: 9, sfxVol: 'keras', scale: '7', bindings: { light: ['KeyZ'], aneh: ['KeyQ'], heavy: [] } });
+    const dirty = migrateSettings({
+      musicVol: 9,
+      sfxVol: 'keras',
+      scale: '7',
+      bindings: { light: ['KeyZ'], aneh: ['KeyQ'], heavy: [] },
+    });
     expect(dirty.musicVol).toBe(1);
     expect(dirty.sfxVol).toBe(defaultSettings().sfxVol);
     expect(dirty.scale).toBe('auto');

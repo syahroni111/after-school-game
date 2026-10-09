@@ -41,7 +41,10 @@ export function migrateProfile(raw: unknown): Profile | null {
   p.moves = { ...base.moves, ...(r.moves as object | undefined) };
   p.flags = typeof r.flags === 'object' && r.flags ? (r.flags as Profile['flags']) : {};
   p.archives = Array.isArray(r.archives) ? (r.archives as string[]) : [];
-  p.unlockedChars = Array.isArray(r.unlockedChars) && r.unlockedChars.length > 0 ? (r.unlockedChars as string[]) : base.unlockedChars;
+  p.unlockedChars =
+    Array.isArray(r.unlockedChars) && r.unlockedChars.length > 0
+      ? (r.unlockedChars as string[])
+      : base.unlockedChars;
   if (typeof p.money !== 'number' || !Number.isFinite(p.money)) p.money = 0;
   return p;
 }
@@ -87,7 +90,11 @@ export class SaveSystem {
   }
 
   save(slot: number, profile: Profile): boolean {
-    return this.write(SAVE_KEY(slot), { version: PROFILE_VERSION, savedAt: Date.now(), profile } satisfies Envelope);
+    return this.write(SAVE_KEY(slot), {
+      version: PROFILE_VERSION,
+      savedAt: Date.now(),
+      profile,
+    } satisfies Envelope);
   }
 
   erase(slot: number): void {
@@ -102,7 +109,9 @@ export class SaveSystem {
     return Array.from({ length: SLOT_COUNT }, (_, i) => {
       const raw = this.read(SAVE_KEY(i)) as Envelope | null;
       const p = raw ? migrateProfile(raw.profile) : null;
-      return p ? { slot: i, chapter: p.chapter, money: p.money, playMs: p.playMs, savedAt: raw?.savedAt ?? 0 } : null;
+      return p
+        ? { slot: i, chapter: p.chapter, money: p.money, playMs: p.playMs, savedAt: raw?.savedAt ?? 0 }
+        : null;
     });
   }
 

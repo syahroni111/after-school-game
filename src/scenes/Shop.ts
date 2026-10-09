@@ -61,7 +61,16 @@ export class Shop extends Phaser.Scene {
       onSelect: () => this.buy(f.id),
     }));
     items.push({ label: 'KEMBALI', onSelect: () => this.leave() });
-    this.menu = new Menu(this, { x: 28, y: 32, items, width: 262, lineHeight: 18, depth: 110, onBack: () => this.leave(), onMove: () => audio.sfx('ui_move') });
+    this.menu = new Menu(this, {
+      x: 28,
+      y: 32,
+      items,
+      width: 262,
+      lineHeight: 18,
+      depth: 110,
+      onBack: () => this.leave(),
+      onMove: () => audio.sfx('ui_move'),
+    });
     this.refreshText();
   }
 
@@ -90,7 +99,9 @@ export class Shop extends Phaser.Scene {
     );
     const f = FOODS[this.menu?.index ?? 0];
     if (f) {
-      const first = p.foodBought[f.id] ? 'SUDAH PERNAH. TIDAK ADA BONUS LAGI.' : `PEMBELIAN PERTAMA: ${f.first.label} - PERMANEN`;
+      const first = p.foodBought[f.id]
+        ? 'SUDAH PERNAH. TIDAK ADA BONUS LAGI.'
+        : `PEMBELIAN PERTAMA: ${f.first.label} - PERMANEN`;
       this.info.setText(`${f.name}: ${f.effect}\n${first}\nKEKUATAN SEKARANG: ${s.power.toFixed(2)}X`);
     } else this.info.setText('KEMBALI KE SEKOLAH.');
   }

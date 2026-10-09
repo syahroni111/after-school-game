@@ -137,7 +137,7 @@ export class CombatSandbox extends Phaser.Scene {
     const p = this.player;
     const d = this.dummy;
     this.hud.setText(
-      `RAKA ${p.state.toUpperCase()} ${p.animName.replace(/_/g, ' ')}\nHP ${Math.ceil(p.hp)}${p.tempHp ? ` DAN ${p.tempHp}` : ""}  STA ${Math.floor(p.stamina)}  KOMBO ${p.combo}\nBONEKA ${this.dummyMode.toUpperCase()}  ${d.state.toUpperCase()}  HP ${Math.ceil(d.hp)}`,
+      `RAKA ${p.state.toUpperCase()} ${p.animName.replace(/_/g, ' ')}\nHP ${Math.ceil(p.hp)}${p.tempHp ? ` DAN ${p.tempHp}` : ''}  STA ${Math.floor(p.stamina)}  KOMBO ${p.combo}\nBONEKA ${this.dummyMode.toUpperCase()}  ${d.state.toUpperCase()}  HP ${Math.ceil(d.hp)}`,
     );
   }
 

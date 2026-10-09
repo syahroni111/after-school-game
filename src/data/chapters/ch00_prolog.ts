@@ -31,7 +31,11 @@ const gerbang: Cmd[] = [
   { c: 'remove', id: 'laras' },
 ];
 
-const gerbangDuring: Cmd[] = [{ c: 'hint', text: 'GERAK: PANAH ATAU WASD' }, { c: 'waitFor', cond: 'move' }, { c: 'hint', text: 'BAGUS! JALAN KE KANAN UNTUK LANJUT' }];
+const gerbangDuring: Cmd[] = [
+  { c: 'hint', text: 'GERAK: PANAH ATAU WASD' },
+  { c: 'waitFor', cond: 'move' },
+  { c: 'hint', text: 'BAGUS! JALAN KE KANAN UNTUK LANJUT' },
+];
 
 const halaman: Cmd[] = [
   { c: 'move', id: 'player', x: 130, y: 185 },
@@ -92,7 +96,12 @@ const lorong: Cmd[] = [
   say(JAKA, 'HEH! KAU YANG HAJAR ANAK BUAHKU DI HALAMAN?', 'marah'),
   say(RAKA, 'MEREKA MEMALAK ANAK SOUTH COURT. ITU SALAH.', 'serius'),
   say(JAKA, 'URUSAN BEGITU BUKAN HAKMU! KAMI EAST BLOCK, KAMI YANG ATUR!', 'marah'),
-  say(DIMAS, 'RAKA, ORANG INI MUDAH SEKALI TERPANCING. BERTAHAN DULU, BALAS SAAT DIA LENGAH.', 'percaya_diri', { side: 'left' }),
+  say(
+    DIMAS,
+    'RAKA, ORANG INI MUDAH SEKALI TERPANCING. BERTAHAN DULU, BALAS SAAT DIA LENGAH.',
+    'percaya_diri',
+    { side: 'left' },
+  ),
   say(JAKA, 'DIAM! MAJU KALIAN SEMUA!', 'marah'),
   { c: 'move', id: 'dimas', x: -30, y: 192, speed: 140 },
   { c: 'remove', id: 'jaka' },

@@ -91,7 +91,12 @@ export class SceneCutsceneHost implements CutsceneHost {
     const side: Dir = cmd.side ?? (speaker && speaker.x > LOGICAL_W / 2 ? 'right' : 'left');
     const portrait = narr ? null : portraitFor(cmd.who, cmd.face ?? 'netral');
     audio.sfx('text');
-    return this.dialog.show({ name: narr ? undefined : (cmd.name ?? characterName(cmd.who)), text: cmd.text, portrait, side });
+    return this.dialog.show({
+      name: narr ? undefined : (cmd.name ?? characterName(cmd.who)),
+      text: cmd.text,
+      portrait,
+      side,
+    });
   }
 
   spawn(cmd: Extract<Cmd, { c: 'spawn' }>): void {
@@ -118,7 +123,13 @@ export class SceneCutsceneHost implements CutsceneHost {
         m.resolve();
         return false;
       });
-      this.movers.push({ actor, tx: cmd.x, ty: cmd.y ?? actor.y, speed: debug.fast ? speed * 4 : speed, resolve });
+      this.movers.push({
+        actor,
+        tx: cmd.x,
+        ty: cmd.y ?? actor.y,
+        speed: debug.fast ? speed * 4 : speed,
+        resolve,
+      });
     });
   }
 
@@ -141,14 +152,19 @@ export class SceneCutsceneHost implements CutsceneHost {
   }
 
   wait(ms: number): Promise<void> {
-    return new Promise((resolve) => this.scene().time.delayedCall(debug.fast ? Math.min(ms, 60) : ms, resolve));
+    return new Promise((resolve) =>
+      this.scene().time.delayedCall(debug.fast ? Math.min(ms, 60) : ms, resolve),
+    );
   }
 
   fade(dir: 'in' | 'out', ms: number): Promise<void> {
     const cam = this.scene().cameras.main;
     const t = debug.fast ? Math.min(ms, 60) : ms;
     return new Promise((resolve) => {
-      const ev = dir === 'out' ? Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE : Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE;
+      const ev =
+        dir === 'out'
+          ? Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE
+          : Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE;
       cam.once(ev, () => resolve());
       if (dir === 'out') cam.fadeOut(t, 0, 0, 0);
       else cam.fadeIn(t, 0, 0, 0);
@@ -204,9 +220,29 @@ export class SceneCutsceneHost implements CutsceneHost {
 
   title(text: string, sub?: string): Promise<void> {
     const s = this.scene();
-    const band = s.add.rectangle(0, LOGICAL_H / 2 - 30, LOGICAL_W, 60, 0x000000, 0.7).setOrigin(0, 0).setDepth(33000).setScrollFactor(0).setAlpha(0);
-    const big = new PixelText(s, LOGICAL_W / 2, LOGICAL_H / 2 - 4, text, { color: COLORS.text, origin: 0.5, align: 'center' }).setScale(2).setDepth(33001).setScrollFactor(0).setAlpha(0);
-    const small = new PixelText(s, LOGICAL_W / 2, LOGICAL_H / 2 - 24, sub ?? '', { color: COLORS.cyan, origin: 0.5, align: 'center' }).setDepth(33001).setScrollFactor(0).setAlpha(0);
+    const band = s.add
+      .rectangle(0, LOGICAL_H / 2 - 30, LOGICAL_W, 60, 0x000000, 0.7)
+      .setOrigin(0, 0)
+      .setDepth(33000)
+      .setScrollFactor(0)
+      .setAlpha(0);
+    const big = new PixelText(s, LOGICAL_W / 2, LOGICAL_H / 2 - 4, text, {
+      color: COLORS.text,
+      origin: 0.5,
+      align: 'center',
+    })
+      .setScale(2)
+      .setDepth(33001)
+      .setScrollFactor(0)
+      .setAlpha(0);
+    const small = new PixelText(s, LOGICAL_W / 2, LOGICAL_H / 2 - 24, sub ?? '', {
+      color: COLORS.cyan,
+      origin: 0.5,
+      align: 'center',
+    })
+      .setDepth(33001)
+      .setScrollFactor(0)
+      .setAlpha(0);
     const objs = [band, big, small];
     const hold = debug.fast ? 120 : 2200;
     return new Promise((resolve) => {
@@ -228,8 +264,17 @@ export class SceneCutsceneHost implements CutsceneHost {
     this.hintOff();
     const s = this.scene();
     const y = this.d.hintY ?? 52;
-    const label = new PixelText(s, LOGICAL_W / 2, y + 5, text, { color: COLORS.gold, origin: 0.5, align: 'center' }).setDepth(32501).setScrollFactor(0);
-    const bg = s.add.rectangle(LOGICAL_W / 2, y + 9, Math.max(80, label.width + 18), 16, 0x121a2e, 0.85).setDepth(32500).setScrollFactor(0);
+    const label = new PixelText(s, LOGICAL_W / 2, y + 5, text, {
+      color: COLORS.gold,
+      origin: 0.5,
+      align: 'center',
+    })
+      .setDepth(32501)
+      .setScrollFactor(0);
+    const bg = s.add
+      .rectangle(LOGICAL_W / 2, y + 9, Math.max(80, label.width + 18), 16, 0x121a2e, 0.85)
+      .setDepth(32500)
+      .setScrollFactor(0);
     this.hintObjs = [bg, label];
   }
 

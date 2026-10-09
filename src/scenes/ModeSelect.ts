@@ -39,7 +39,9 @@ export class ModeSelect extends Phaser.Scene {
     this.add.image(0, 0, 'stage:halaman').setOrigin(0, 0).setDepth(-2);
     addDim(this, 0.6, -1);
     addPanel(this, 60, 40, LOGICAL_W - 120, 168, 'MODE BEBAS DAN BOSS RUSH');
-    new PixelText(this, 78, 190, 'TANPA UANG DAN TANPA HUKUMAN. HP PENUH DI SETIAP LAYAR.', { color: COLORS.dim }).setDepth(100);
+    new PixelText(this, 78, 190, 'TANPA UANG DAN TANPA HUKUMAN. HP PENUH DI SETIAP LAYAR.', {
+      color: COLORS.dim,
+    }).setDepth(100);
 
     const chapters = playableChapters(CHAPTERS);
     const list = game.profile.unlockedChars;
@@ -61,7 +63,15 @@ export class ModeSelect extends Phaser.Scene {
       { label: 'MULAI BOSS RUSH', onSelect: () => this.startRush() },
       { label: 'KEMBALI', onSelect: () => this.leave() },
     ];
-    this.menu = new Menu(this, { x: 84, y: 66, items, width: LOGICAL_W - 168, depth: 110, onBack: () => this.leave(), onMove: () => audio.sfx('ui_move') });
+    this.menu = new Menu(this, {
+      x: 84,
+      y: 66,
+      items,
+      width: LOGICAL_W - 168,
+      depth: 110,
+      onBack: () => this.leave(),
+      onMove: () => audio.sfx('ui_move'),
+    });
   }
 
   private cycleChar(d: number): void {
@@ -89,7 +99,12 @@ export class ModeSelect extends Phaser.Scene {
     playSeries(this, {
       screens,
       onComplete: (results, st) =>
-        st.scene.start('Result', { title, rows: resultRows(results), money: game.profile.money, onContinue: () => back(st) }),
+        st.scene.start('Result', {
+          title,
+          rows: resultRows(results),
+          money: game.profile.money,
+          onContinue: () => back(st),
+        }),
       onFail: (_r, st, retry) => st.scene.start('GameOver', { onRetry: retry, onQuit: () => back(st) }),
       onQuit: back,
     });

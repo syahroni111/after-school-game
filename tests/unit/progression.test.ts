@@ -40,7 +40,12 @@ describe('applyScriptEffects', () => {
       { c: 'giveArchive', id: 'arsip_1' },
       { c: 'giveArchive', id: 'arsip_1' },
       { c: 'unlock', what: 'move:badan' },
-      { c: 'ifFlag', key: 'a', then: [{ c: 'setFlag', key: 'cabang_then' }], else: [{ c: 'setFlag', key: 'cabang_else' }] },
+      {
+        c: 'ifFlag',
+        key: 'a',
+        then: [{ c: 'setFlag', key: 'cabang_then' }],
+        else: [{ c: 'setFlag', key: 'cabang_else' }],
+      },
       say('A01_protagonis', 'HALO'),
     ]);
     expect(p.flags).toMatchObject({ a: true, cabang_then: true });
@@ -51,7 +56,8 @@ describe('applyScriptEffects', () => {
   });
   it('menerapkan semua bab sebelum Bab 1 menghasilkan profil yang konsisten (flag Prolog)', () => {
     const p = newProfile();
-    for (const s of CHAPTERS[0]?.screens ?? []) for (const sc of [s.before, s.during, s.after]) if (sc) applyScriptEffects(p, sc);
+    for (const s of CHAPTERS[0]?.screens ?? [])
+      for (const sc of [s.before, s.during, s.after]) if (sc) applyScriptEffects(p, sc);
     expect(p.flags.prolog_selesai).toBe(true);
     expect(p.flags.kenal_dimas).toBe(true);
   });

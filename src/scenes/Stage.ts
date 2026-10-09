@@ -34,6 +34,8 @@ import { playerStats } from '../systems/Profile';
 import { parSecondsFor, rankOf, scoreOf } from '../systems/Ranking';
 import type { Rank } from '../systems/Ranking';
 import { ScreenFx } from '../systems/ScreenFx';
+import { drawHitboxes } from '../systems/HitboxOverlay';
+import { settings } from '../systems/Settings';
 import { WaveDirector } from '../systems/WaveDirector';
 import type { SpawnDef } from '../systems/WaveDirector';
 import { HP_FLOOR_RATIO, HP_REGEN_RATIO, consumeBuffs } from '../systems/Economy';
@@ -81,7 +83,17 @@ const PLAYER_START_X = 60;
 const EXIT_X = 458;
 const TARGET_TICKS = 240;
 const WEATHERS: readonly string[] = ['cerah', 'berawan', 'hujan', 'sore', 'malam'];
-const newTrack = (): Track => ({ move: 0, hit: 0, combo: 0, guard: 0, parry: 0, dodge: 0, counter: 0, special: 0, dash: 0 });
+const newTrack = (): Track => ({
+  move: 0,
+  hit: 0,
+  combo: 0,
+  guard: 0,
+  parry: 0,
+  dodge: 0,
+  counter: 0,
+  special: 0,
+  dash: 0,
+});
 
 /** Layar dev dari parameter URL: stage apa pun, cuaca apa pun, dengan atau tanpa musuh. */
 export function debugScreen(stage: string, weather?: string, enemies = false): ScreenDef {
@@ -136,10 +148,14 @@ export class Stage extends Phaser.Scene {
   private waveWaiter: (() => void) | null = null;
   private prev = { x: 0, y: 0, move: '', state: '' };
   private interactRequested = false;
-  private pickups: { def: PickupDef; sprite: Phaser.GameObjects.Sprite; icon: Phaser.GameObjects.Sprite }[] = [];
+  private pickups: { def: PickupDef; sprite: Phaser.GameObjects.Sprite; icon: Phaser.GameObjects.Sprite }[] =
+    [];
   private timeLeft = Infinity;
   private escortFighter: Fighter | null = null;
   private ally: Fighter | null = null;
+  private hitboxGfx?: Phaser.GameObjects.Graphics;
+  private hitboxShown = false;
+  private fpsText?: PixelText;
   /** Meteran Duet Panji: pukulan mendarat sejak duet terakhir. */
   duetHits = 0;
 
@@ -186,8 +202,13 @@ export class Stage extends Phaser.Scene {
     if (import.meta.env.DEV) (window as unknown as { __stage?: Stage }).__stage = this;
 
     this.cameras.main.setBackgroundColor(0x000000);
-    this.backdrop = new Backdrop(this, screen.stage, { weather: screen.weather, rain: screen.rain, filter: screen.filter, crowd: screen.crowd });
-    audio.music(screen.music ?? null);
+    this.backdrop = new Backdrop(this, screen.stage, {
+      weather: screen.weather,
+      rain: screen.rain,
+      filter: screen.filter,
+      crowd: screen.crowd,
+    });
+    audio.music(screen.music ?? (screen.spawns.length > 0 ? 'tempur' : 'sekolah'));
 
     const diff = DIFFICULTY[this.difficulty()];
     const bounds = { minX: 14, maxX: LOGICAL_W - 14, minY: WALK_AREA_Y[0], maxY: WALK_AREA_Y[1] };
@@ -196,7 +217,12 @@ export class Stage extends Phaser.Scene {
     this.director = new AttackDirector(diff.tokens);
     this.wave = new WaveDirector(screen.spawns);
     this.fx = new EffectPool(this);
-    this.screenFx = new ScreenFx(this);
+    this.screenFx = new ScreenFx(this, {
+      reduceShake: () => settings.current.reduceShake,
+      reduceFlash: () => settings.current.reduceFlash,
+    });
+    this.hitboxGfx = this.add.graphics().setDepth(9500);
+    if (import.meta.env.DEV) this.setupFpsOverlay();
     this.presenter = new CombatPresenter(this.world, this.fx, this.screenFx, (n) => audio.sfx(n));
 
     const charKey = screen.playerChar ?? (screen.free ? game.profile.selectedChar : 'A01_protagonis');
@@ -208,7 +234,13 @@ export class Stage extends Phaser.Scene {
       x: PLAYER_START_X,
       y: 222,
       facing: 1,
-      stats: debug.power !== 1 ? { ...playerStats(game.profile, charKey), power: playerStats(game.profile, charKey).power * debug.power } : playerStats(game.profile, charKey),
+      stats:
+        debug.power !== 1
+          ? {
+              ...playerStats(game.profile, charKey),
+              power: playerStats(game.profile, charKey).power * debug.power,
+            }
+          : playerStats(game.profile, charKey),
       unlocks,
       host: this.world,
       view: new SpriteView(this, charKey),
@@ -440,6 +472,7 @@ export class Stage extends Phaser.Scene {
     this.checkPhases();
     for (const f of this.world.fighters) (f.view as SpriteView).updateStatus(f);
     this.updateRules(steps);
+    this.updateHitboxOverlay();
     this.updatePickups();
     this.updateState();
     this.hud.update(this.hudState());
@@ -457,11 +490,22 @@ export class Stage extends Phaser.Scene {
 
   private handleEvents(events: WorldEvent[]): void {
     for (const e of events) {
-      if (e.type === 'hit' && e.attacker.team !== 'enemy' && e.target.team === 'enemy' && e.result.kind !== 'miss') {
+      if (
+        e.type === 'hit' &&
+        e.attacker.team !== 'enemy' &&
+        e.target.team === 'enemy' &&
+        e.result.kind !== 'miss'
+      ) {
         this.target = e.target;
         this.targetTimer = TARGET_TICKS;
       }
-      if (this.screenDef.duet && e.type === 'hit' && e.attacker.team !== 'enemy' && e.target.team === 'enemy' && (e.result.kind === 'hit' || e.result.kind === 'guardBreak')) {
+      if (
+        this.screenDef.duet &&
+        e.type === 'hit' &&
+        e.attacker.team !== 'enemy' &&
+        e.target.team === 'enemy' &&
+        (e.result.kind === 'hit' || e.result.kind === 'guardBreak')
+      ) {
         this.duetHits = Math.min(DUET_FULL_HITS, this.duetHits + 1);
       }
       if (e.type === 'hit' && e.result.ko && e.target.team === 'enemy') this.onEnemyDown(e.target);
@@ -477,7 +521,8 @@ export class Stage extends Phaser.Scene {
   /** Dorongan pemain saat meteran penuh: Arga ikut mendorong bersamaan, dengan efek layar duet. */
   private tryDuet(): void {
     const a = this.ally;
-    if (!this.screenDef.duet || this.duetHits < DUET_FULL_HITS || !a || a.dead || a.removed || !a.canAct) return;
+    if (!this.screenDef.duet || this.duetHits < DUET_FULL_HITS || !a || a.dead || a.removed || !a.canAct)
+      return;
     this.duetHits = 0;
     const hp = a.hp; // dorongan sekutu tidak memakai HP
     a.startMove('push');
@@ -516,13 +561,19 @@ export class Stage extends Phaser.Scene {
         if (ph.speedMult) f.stats = { ...f.stats, speed: f.stats.speed * ph.speedMult };
         if (ph.screenFx) this.screenFx.screen(ph.screenFx);
         if (ph.say) this.fx.floatText(ph.say, f.x, f.y - 62, 0xe05050);
-        for (const id of ph.spawn ?? []) this.extra.push({ enemy: id, side: this.rng.chance(0.5) ? 'left' : 'right' });
+        for (const id of ph.spawn ?? [])
+          this.extra.push({ enemy: id, side: this.rng.chance(0.5) ? 'left' : 'right' });
       });
     }
   }
 
   private fightCleared(): boolean {
-    return this.duringFinished && this.wave.exhausted && this.extra.length === 0 && this.world.aliveEnemies().length === 0;
+    return (
+      this.duringFinished &&
+      this.wave.exhausted &&
+      this.extra.length === 0 &&
+      this.world.aliveEnemies().length === 0
+    );
   }
 
   private updateState(): void {
@@ -571,7 +622,10 @@ export class Stage extends Phaser.Scene {
   private buildPickups(screen: ScreenDef): void {
     for (const def of screen.pickups ?? []) {
       if (this.pickupTaken(def)) continue;
-      const sprite = this.add.sprite(def.x, def.y, 'prop:07_CLASSROOM/buku_catatan').setOrigin(0.5, 1).setDepth(def.y - 1);
+      const sprite = this.add
+        .sprite(def.x, def.y, 'prop:07_CLASSROOM/buku_catatan')
+        .setOrigin(0.5, 1)
+        .setDepth(def.y - 1);
       const icon = this.add.sprite(def.x, def.y - 16, 'ui:penanda_misi', 0).setDepth(9500);
       icon.play('ui:penanda_misi:loop');
       this.pickups.push({ def, sprite, icon });
@@ -579,7 +633,9 @@ export class Stage extends Phaser.Scene {
   }
 
   private pickupTaken(def: PickupDef): boolean {
-    return def.kind === 'buku' ? game.profile.flags[`item_${def.id}`] === true : game.profile.archives.includes(def.id);
+    return def.kind === 'buku'
+      ? game.profile.flags[`item_${def.id}`] === true
+      : game.profile.archives.includes(def.id);
   }
 
   private updatePickups(): void {
@@ -608,7 +664,8 @@ export class Stage extends Phaser.Scene {
       if (this.timeLeft <= 0) return this.failRule('waktu');
     }
     if (s.maxHits !== undefined && this.world.stats.hitsTaken > s.maxHits) return this.failRule('terkena');
-    if (this.escortFighter && (this.escortFighter.dead || this.escortFighter.removed)) this.failRule('kawalan');
+    if (this.escortFighter && (this.escortFighter.dead || this.escortFighter.removed))
+      this.failRule('kawalan');
   }
 
   private failRule(reason: 'waktu' | 'terkena' | 'kawalan'): void {
@@ -629,7 +686,11 @@ export class Stage extends Phaser.Scene {
     this.state = 'clear';
     this.marker = this.add.sprite(LOGICAL_W - 22, 205, 'ui:penanda_tujuan', 0).setDepth(19500);
     this.marker.play('ui:penanda_tujuan:loop');
-    this.markerText = new PixelText(this, LOGICAL_W - 22, 184, 'LANJUT', { color: 0xf6f7fa, origin: 0.5, align: 'center' }).setDepth(19500);
+    this.markerText = new PixelText(this, LOGICAL_W - 22, 184, 'LANJUT', {
+      color: 0xf6f7fa,
+      origin: 0.5,
+      align: 'center',
+    }).setDepth(19500);
   }
 
   // ---------- selesai ----------
@@ -687,7 +748,16 @@ export class Stage extends Phaser.Scene {
     if (r.win) {
       this.scene.start('Result', {
         title: 'UJI',
-        rows: [{ label: r.label, score: r.score, rank: r.rank, damage: r.stats.damageDealt, combo: r.stats.maxCombo, seconds: r.seconds }],
+        rows: [
+          {
+            label: r.label,
+            score: r.score,
+            rank: r.rank,
+            damage: r.stats.damageDealt,
+            combo: r.stats.maxCombo,
+            seconds: r.seconds,
+          },
+        ],
         money: game.profile.money,
         onContinue: () => this.quit(),
         onRetry: retry,
@@ -695,8 +765,47 @@ export class Stage extends Phaser.Scene {
     } else this.scene.start('GameOver', { onRetry: retry, onQuit: () => this.quit() });
   }
 
+  /** Dipanggil saat tab kehilangan fokus: buka menu jeda bila sedang bermain. */
+  requestPause(): void {
+    if (!this.finished && this.state !== 'over' && !this.scene.isPaused()) this.pauseRequested = true;
+  }
+
+  /** Build dev: F3 menampilkan FPS dan jumlah petarung (CLAUDE.md §14). */
+  private setupFpsOverlay(): void {
+    this.fpsText = new PixelText(this, LOGICAL_W - 4, 24, '', { color: 0xe8c860, origin: 1 })
+      .setOrigin(1, 0)
+      .setDepth(20000)
+      .setVisible(false);
+    this.input.keyboard?.on('keydown-F3', () => this.fpsText?.setVisible(!this.fpsText.visible));
+    const tick = (): void => {
+      if (this.fpsText?.visible)
+        this.fpsText.setText(
+          `FPS ${Math.round(this.game.loop.actualFps)}  PETARUNG ${this.world.fighters.length}`,
+        );
+    };
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, tick);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
+      this.events.off(Phaser.Scenes.Events.POST_UPDATE, tick),
+    );
+  }
+
+  private updateHitboxOverlay(): void {
+    const on = settings.current.showHitbox;
+    if (on) drawHitboxes(this.hitboxGfx as Phaser.GameObjects.Graphics, this.world.fighters);
+    else if (this.hitboxShown) this.hitboxGfx?.clear();
+    this.hitboxShown = on;
+  }
+
   private openPause(): void {
-    this.scene.launch('Pause', { parent: 'Stage', onRestart: () => this.scene.restart(this.init0), onQuit: () => this.quit() });
+    this.scene.launch('Pause', {
+      parent: 'Stage',
+      onRestart: () => this.scene.restart(this.init0),
+      onQuit: () => this.quit(),
+      onSettings: () => {
+        this.scene.launch('Settings', { from: 'Pause', overlay: true });
+        this.scene.pause('Pause');
+      },
+    });
     this.scene.pause();
   }
 
@@ -732,8 +841,14 @@ export class Stage extends Phaser.Scene {
       const sec = Math.max(0, Math.ceil(this.timeLeft / 60));
       parts.push(`WAKTU ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`);
     }
-    if (s.maxHits !== undefined) parts.push(`KENA ${Math.min(this.world.stats.hitsTaken, s.maxHits + 1)}/${s.maxHits}`);
-    if (s.duet) parts.push(this.duetHits >= DUET_FULL_HITS ? 'DUET PANJI SIAP: J DAN K' : `DUET ${this.duetHits}/${DUET_FULL_HITS}`);
+    if (s.maxHits !== undefined)
+      parts.push(`KENA ${Math.min(this.world.stats.hitsTaken, s.maxHits + 1)}/${s.maxHits}`);
+    if (s.duet)
+      parts.push(
+        this.duetHits >= DUET_FULL_HITS
+          ? 'DUET PANJI SIAP: J DAN K'
+          : `DUET ${this.duetHits}/${DUET_FULL_HITS}`,
+      );
     if (this.escortFighter) parts.push(`KAWAL ${Math.max(0, Math.ceil(this.escortFighter.hp))}`);
     return parts.join('  ');
   }

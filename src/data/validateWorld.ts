@@ -12,7 +12,13 @@ import { FOODS } from './items';
 import { isLocation } from './locations';
 import { SIDE_QUESTS } from './sidequests';
 import { STAGES } from './stages';
-import { PLANNED_CHAPTERS, checkText, validateAll, validateCommands, validateScreen } from './validateContent';
+import {
+  PLANNED_CHAPTERS,
+  checkText,
+  validateAll,
+  validateCommands,
+  validateScreen,
+} from './validateContent';
 
 const CHAPTER_FLAG = /^ch\d\d_selesai$/;
 const MAX_ARCHIVE_LINES = 4;
@@ -25,10 +31,12 @@ export function validateArchives(): string[] {
     if (ids.has(a.id)) errs.push(`arsip ganda: ${a.id}`);
     ids.add(a.id);
     checkText(a.title, `arsip ${a.id} judul`, errs);
-    if (a.lines.length === 0 || a.lines.length > MAX_ARCHIVE_LINES) errs.push(`arsip ${a.id}: jumlah baris ${a.lines.length} (1..${MAX_ARCHIVE_LINES})`);
+    if (a.lines.length === 0 || a.lines.length > MAX_ARCHIVE_LINES)
+      errs.push(`arsip ${a.id}: jumlah baris ${a.lines.length} (1..${MAX_ARCHIVE_LINES})`);
     for (const l of a.lines) {
       checkText(l, `arsip ${a.id}`, errs);
-      if (l.length > MAX_ARCHIVE_CHARS) errs.push(`arsip ${a.id}: baris terlalu panjang (${l.length} > ${MAX_ARCHIVE_CHARS}): ${l}`);
+      if (l.length > MAX_ARCHIVE_CHARS)
+        errs.push(`arsip ${a.id}: baris terlalu panjang (${l.length} > ${MAX_ARCHIVE_CHARS}): ${l}`);
     }
   }
   return errs;
@@ -42,7 +50,8 @@ export function validateShop(): string[] {
   }
   for (const m of DOJO_MOVES) {
     for (const t of [m.label, m.desc]) checkText(t, `dojo ${m.id}`, errs);
-    if (m.requires && !CHAPTER_FLAG.test(m.requires)) errs.push(`dojo ${m.id}: syarat bukan flag bab: ${m.requires}`);
+    if (m.requires && !CHAPTER_FLAG.test(m.requires))
+      errs.push(`dojo ${m.id}: syarat bukan flag bab: ${m.requires}`);
   }
   return errs;
 }
@@ -67,15 +76,21 @@ export function validateHub(): string[] {
         if (n.idle && !hasCharAnim(n.char, n.idle)) errs.push(`${nw}: tidak punya animasi ${n.idle}`);
         if (!hasCharAnim(n.char, 'idle_berdiri')) errs.push(`${nw}: tidak punya animasi idle_berdiri`);
       }
-      if (n.x < 14 || n.x > 466 || n.y < 162 || n.y > 264) errs.push(`${nw}: posisi di luar area jalan (${n.x},${n.y})`);
-      if (n.talk.length === 0 || n.talk.every((t) => t.requires)) errs.push(`${nw}: harus punya percakapan bawaan (tanpa requires)`);
+      if (n.x < 14 || n.x > 466 || n.y < 162 || n.y > 264)
+        errs.push(`${nw}: posisi di luar area jalan (${n.x},${n.y})`);
+      if (n.talk.length === 0 || n.talk.every((t) => t.requires))
+        errs.push(`${nw}: harus punya percakapan bawaan (tanpa requires)`);
       for (const t of n.talk) {
-        if (t.requires && !CHAPTER_FLAG.test(t.requires)) errs.push(`${nw}: requires bukan flag bab: ${t.requires}`);
+        if (t.requires && !CHAPTER_FLAG.test(t.requires))
+          errs.push(`${nw}: requires bukan flag bab: ${t.requires}`);
         errs.push(...validateCommands(t.script, nw));
       }
       if (n.action === 'dojo' && loc.id !== 'gimnasium') errs.push(`${nw}: Dojo hanya di gimnasium`);
       if (n.action === 'shop') errs.push(`${nw}: Kantin dibuka lewat titik interaksi, bukan NPC`);
-      if (n.quest && !SIDE_QUESTS.some((q) => q.id === n.quest && q.location === loc.id && q.giver === n.id)) {
+      if (
+        n.quest &&
+        !SIDE_QUESTS.some((q) => q.id === n.quest && q.location === loc.id && q.giver === n.id)
+      ) {
         errs.push(`${nw}: misi ${n.quest} tidak cocok dengan data misi`);
       }
     }
@@ -107,15 +122,22 @@ export function validateQuests(): string[] {
       errs.push(...validateScreen(sc));
       if (!sc.free) errs.push(`${w}/${sc.id}: layar misi harus free: true (tokoh pilihan)`);
       if (sc.timeLimit !== undefined && sc.timeLimit <= 0) errs.push(`${w}/${sc.id}: timeLimit tidak valid`);
-      if (sc.escort && !ENEMIES[sc.escort]) errs.push(`${w}/${sc.id}: sekutu kawalan tidak dikenal: ${sc.escort}`);
+      if (sc.escort && !ENEMIES[sc.escort])
+        errs.push(`${w}/${sc.id}: sekutu kawalan tidak dikenal: ${sc.escort}`);
       for (const pk of sc.pickups ?? []) {
-        if (pk.x < 10 || pk.x > 470 || pk.y < 162 || pk.y > 264) errs.push(`${w}/${sc.id}: pickup ${pk.id} di luar area`);
+        if (pk.x < 10 || pk.x > 470 || pk.y < 162 || pk.y > 264)
+          errs.push(`${w}/${sc.id}: pickup ${pk.id} di luar area`);
       }
     }
-    for (const [name, script] of [['intro', q.intro], ['success', q.success], ['fail', q.fail]] as const) {
+    for (const [name, script] of [
+      ['intro', q.intro],
+      ['success', q.success],
+      ['fail', q.fail],
+    ] as const) {
       errs.push(...validateCommands(script, `${w}.${name}`));
     }
-    if (!ARCHIVE_IDS.includes(q.reward.archive)) errs.push(`${w}: arsip hadiah tidak dikenal: ${q.reward.archive}`);
+    if (!ARCHIVE_IDS.includes(q.reward.archive))
+      errs.push(`${w}: arsip hadiah tidak dikenal: ${q.reward.archive}`);
     if (q.reward.money <= 0) errs.push(`${w}: hadiah uang tidak valid`);
     if (q.reward.stat) checkText(q.reward.stat.label, `${w} stat`, errs);
   }
@@ -130,7 +152,8 @@ export function validateArchiveCoverage(chapters: readonly ChapterDef[]): string
     for (const sc of ch.screens) {
       for (const pk of sc.pickups ?? []) if (pk.kind !== 'buku') add(pk.id, `${ch.id}/${sc.id} penanda`);
       for (const script of [sc.before, sc.during, sc.after]) {
-        if (script) walkCmds(script, (c) => c.c === 'giveArchive' && add(c.id, `${ch.id}/${sc.id} giveArchive`));
+        if (script)
+          walkCmds(script, (c) => c.c === 'giveArchive' && add(c.id, `${ch.id}/${sc.id} giveArchive`));
       }
     }
   }
@@ -141,7 +164,8 @@ export function validateArchiveCoverage(chapters: readonly ChapterDef[]): string
     if (w.length === 0) errs.push(`arsip ${id} tidak bisa didapat di mana pun`);
     else if (w.length > 1) errs.push(`arsip ${id} didapat di lebih dari satu tempat: ${w.join(', ')}`);
   }
-  for (const id of where.keys()) if (!ARCHIVE_IDS.includes(id)) errs.push(`arsip tidak dikenal dirujuk: ${id}`);
+  for (const id of where.keys())
+    if (!ARCHIVE_IDS.includes(id)) errs.push(`arsip tidak dikenal dirujuk: ${id}`);
   return errs;
 }
 
@@ -162,16 +186,33 @@ export function validateLocationUnlocks(chapters: readonly ChapterDef[]): string
   for (const ch of chapters) {
     for (const sc of ch.screens) {
       for (const script of [sc.before, sc.during, sc.after]) {
-        if (script) walkCmds(script, (c) => c.c === 'unlock' && c.what.startsWith('location:') && opened.add(c.what.slice(9)));
+        if (script)
+          walkCmds(
+            script,
+            (c) => c.c === 'unlock' && c.what.startsWith('location:') && opened.add(c.what.slice(9)),
+          );
       }
     }
   }
-  return HUB_LOCATIONS.filter((l) => !opened.has(l.id)).map((l) => `lokasi hub tidak pernah dibuka cerita: ${l.id}`);
+  return HUB_LOCATIONS.filter((l) => !opened.has(l.id)).map(
+    (l) => `lokasi hub tidak pernah dibuka cerita: ${l.id}`,
+  );
 }
 
 /** Semua pemeriksaan konten (dipakai tools/validate-content.mjs dan test). */
 export function validateEverything(): string[] {
-  const errs = [...validateAll(), ...validateArchives(), ...validateShop(), ...validateHub(), ...validateQuests()];
-  if (CHAPTERS.length >= PLANNED_CHAPTERS.length) errs.push(...validateArchiveCoverage(CHAPTERS), ...validateStageCoverage(CHAPTERS), ...validateLocationUnlocks(CHAPTERS));
+  const errs = [
+    ...validateAll(),
+    ...validateArchives(),
+    ...validateShop(),
+    ...validateHub(),
+    ...validateQuests(),
+  ];
+  if (CHAPTERS.length >= PLANNED_CHAPTERS.length)
+    errs.push(
+      ...validateArchiveCoverage(CHAPTERS),
+      ...validateStageCoverage(CHAPTERS),
+      ...validateLocationUnlocks(CHAPTERS),
+    );
   return errs;
 }

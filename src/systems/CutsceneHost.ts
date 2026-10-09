@@ -184,7 +184,7 @@ export class SceneCutsceneHost implements CutsceneHost {
   giveMoney(amount: number): void {
     game.profile.money += amount;
     audio.sfx('money');
-    showToast(this.scene(), `+RP ${amount}`, 1800);
+    showToast(this.scene(), `DAPAT RP ${amount}`, 1800);
   }
 
   giveArchive(id: string): void {

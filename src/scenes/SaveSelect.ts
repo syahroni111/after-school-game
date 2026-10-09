@@ -95,7 +95,7 @@ export class SaveSelect extends Phaser.Scene {
 
   private pickDifficulty(slot: number): void {
     this.openSub('KESULITAN', [
-      ...DIFFICULTIES.map((d): MenuItem => ({ label: `${DIFFICULTY[d].label}${d === 'normal' ? ' (DISARANKAN)' : ''}`, onSelect: () => this.startNew(slot, d) })),
+      ...DIFFICULTIES.map((d): MenuItem => ({ label: `${DIFFICULTY[d].label}${d === 'normal' ? ' - DISARANKAN' : ''}`, onSelect: () => this.startNew(slot, d) })),
       { label: 'BATAL', onSelect: () => this.closeSub() },
     ], 1);
   }

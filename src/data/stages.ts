@@ -55,6 +55,15 @@ export const WEATHER_TINT: Readonly<Partial<Record<Weather, TintDef>>> = {
 
 export type ScreenFilter = 'sepia';
 
+/** Benda yang bisa diambil dengan tombol Interaksi (Arsip Sejarah atau buku misi). */
+export interface PickupDef {
+  id: string;
+  /** 'arsip' = halaman Arsip Sejarah (id = id arsip); 'buku' = benda misi. */
+  kind?: 'arsip' | 'buku';
+  x: number;
+  y: number;
+}
+
 /** Satu layar pertarungan (arena terkunci). */
 export interface ScreenDef {
   id: string;
@@ -83,4 +92,13 @@ export interface ScreenDef {
   after?: readonly Cmd[];
   /** Hanya cutscene (tanpa pertarungan dan tanpa marker LANJUT): layar selesai setelah skrip habis. */
   cutsceneOnly?: boolean;
+  /** Dimainkan sebagai tokoh pilihan pemain (misi sampingan, Mode Bebas); bawaan: Raka. */
+  free?: boolean;
+  /** Latih tanding: HP penuh, tanpa hukuman, HP tidak dibawa. */
+  practice?: boolean;
+  pickups?: readonly PickupDef[];
+  /** Id musuh-sekutu (EnemyDef) yang harus dikawal: misi gagal bila ia kalah. */
+  escort?: string;
+  /** Misi gagal bila pemain terkena lebih dari N kali. */
+  maxHits?: number;
 }

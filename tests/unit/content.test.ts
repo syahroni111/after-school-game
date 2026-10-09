@@ -3,13 +3,14 @@ import { CHAPTERS } from '../../src/data/chapters';
 import { say, narasi } from '../../src/data/cutscene';
 import type { Cmd } from '../../src/data/cutscene';
 import { validateAll, validateChapter, validateCommands, validateScreen } from '../../src/data/validateContent';
+import { validateEverything } from '../../src/data/validateWorld';
 import type { ScreenDef } from '../../src/data/stages';
 
 const ok = (cmds: Cmd[]) => validateCommands(cmds, 't');
 
 describe('validasi konten cerita', () => {
   it('semua bab yang ada lulus validasi', () => {
-    expect(validateAll()).toEqual([]);
+    expect(validateEverything()).toEqual([]);
   });
   it('ada Prolog dan Bab 1, berurutan', () => {
     expect(CHAPTERS.map((c) => c.id).slice(0, 2)).toEqual(['ch00', 'ch01']);

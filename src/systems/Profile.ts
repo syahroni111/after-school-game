@@ -33,6 +33,12 @@ export interface Profile {
   playMs: number;
   /** Mode bebas dan boss rush terbuka setelah tamat. */
   cleared: boolean;
+  /** HP saat ini (terbawa antar layar). Kosong = penuh. */
+  hp?: number;
+  /** Buff sekali pakai dari makanan, dipakai di layar berikutnya. */
+  buff?: { kuat?: boolean };
+  /** Lokasi Waktu Bebas terakhir. */
+  hubLocation?: string;
 }
 
 export function newProfile(): Profile {

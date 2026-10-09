@@ -28,6 +28,8 @@ export interface HudState {
   combo: number;
   statuses: readonly string[];
   target: HudTarget | null;
+  /** Teks tambahan di tengah atas (WAKTU, KENA, KAWAL). */
+  extra?: string;
 }
 
 const SCHOOL_KEY: Record<School, string> = {
@@ -56,6 +58,7 @@ export class Hud {
   private statusIcons: Phaser.GameObjects.Image[] = [];
   private enemyGroup: Phaser.GameObjects.GameObject[] = [];
   private comboShown = 0;
+  private extra!: PixelText;
   private hidden = false;
 
   constructor(private readonly scene: Phaser.Scene) {
@@ -82,6 +85,8 @@ export class Hud {
     this.staFill = img(44, 18, 'ui:bar_stamina');
     this.name = this.text(44, 31, '', 0xf6f7fa);
     this.combo = this.text(6, 50, '', 0xe8c860);
+    this.extra = this.text(LOGICAL_W / 2, 6, '', 0xf6f7fa);
+    this.extra.setOrigin(0.5, 0);
     this.money = this.text(112, 31, '', 0xe8c860);
     for (let i = 0; i < STATUS_KEYS.length; i++) {
       const s = scene.add
@@ -135,6 +140,7 @@ export class Hud {
     if (s.tempHp > 0 && tempW > 0) this.hpTemp.setCrop(hpW, 0, tempW, BAR_H);
     Hud.crop(this.staFill, s.stamina / s.maxStamina);
     this.money.setText(formatMoney(s.money));
+    this.extra.setText(s.extra ?? '');
 
     if (s.combo !== this.comboShown) {
       this.comboShown = s.combo;

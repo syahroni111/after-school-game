@@ -36,6 +36,9 @@ import type { Rank } from '../systems/Ranking';
 import { ScreenFx } from '../systems/ScreenFx';
 import { WaveDirector } from '../systems/WaveDirector';
 import type { SpawnDef } from '../systems/WaveDirector';
+import { HP_FLOOR_RATIO, HP_REGEN_RATIO, consumeBuffs } from '../systems/Economy';
+import { KUAT_TICKS } from '../data/tuning';
+import type { PickupDef } from '../data/stages';
 import { Hud } from '../ui/Hud';
 import type { HudTarget } from '../ui/Hud';
 import { PixelText } from '../ui/PixelText';
@@ -52,6 +55,8 @@ export interface StageResult {
   seconds: number;
   score: number;
   rank: Rank;
+  /** Misi gagal karena aturan (waktu habis, terlalu sering terkena, kawalan kalah). */
+  failReason?: 'waktu' | 'terkena' | 'kawalan';
 }
 
 export interface StageInit {
@@ -130,6 +135,10 @@ export class Stage extends Phaser.Scene {
   private waiters: { cond: WaitCond; base: number; times: number; resolve: () => void }[] = [];
   private waveWaiter: (() => void) | null = null;
   private prev = { x: 0, y: 0, move: '', state: '' };
+  private interactRequested = false;
+  private pickups: { def: PickupDef; sprite: Phaser.GameObjects.Sprite; icon: Phaser.GameObjects.Sprite }[] = [];
+  private timeLeft = Infinity;
+  private escortFighter: Fighter | null = null;
 
   constructor() {
     super('Stage');
@@ -165,6 +174,10 @@ export class Stage extends Phaser.Scene {
     this.marker = undefined;
     this.markerText = undefined;
     this.track = newTrack();
+    this.interactRequested = false;
+    this.pickups = [];
+    this.timeLeft = screen.timeLimit !== undefined ? screen.timeLimit * 60 : Infinity;
+    this.escortFighter = null;
     if (import.meta.env.DEV) (window as unknown as { __stage?: Stage }).__stage = this;
 
     this.cameras.main.setBackgroundColor(0x000000);
@@ -181,7 +194,7 @@ export class Stage extends Phaser.Scene {
     this.screenFx = new ScreenFx(this);
     this.presenter = new CombatPresenter(this.world, this.fx, this.screenFx, (n) => audio.sfx(n));
 
-    const charKey = screen.playerChar ?? game.profile.selectedChar;
+    const charKey = screen.playerChar ?? (screen.free ? game.profile.selectedChar : 'A01_protagonis');
     const unlocks = data.unlock === 'all' ? ALL_UNLOCKED : game.profile.moves;
     this.player = new Fighter({
       id: 'player',
@@ -197,7 +210,10 @@ export class Stage extends Phaser.Scene {
     });
     this.world.add(this.player, this.playerController);
     this.actors.set('player', new FighterActor('player', this.player));
+    this.applyCarryover(screen);
     if (screen.allyArga) this.spawnAlly('arga');
+    if (screen.escort) this.escortFighter = this.spawnAlly(screen.escort);
+    this.buildPickups(screen);
     this.prev = { x: this.player.x, y: this.player.y, move: '', state: '' };
 
     this.hud = new Hud(this);
@@ -274,6 +290,7 @@ export class Stage extends Phaser.Scene {
     this.playerTicks++;
     const frame = input.sample();
     if (frame.pressed.has('pause')) this.pauseRequested = true;
+    if (frame.pressed.has('interact')) this.interactRequested = true;
     return this.controller.intent(frame, self, this.playerTicks);
   };
 
@@ -368,7 +385,7 @@ export class Stage extends Phaser.Scene {
     this.phasesDone.set(fighter, new Set());
   }
 
-  private spawnAlly(enemy: string): void {
+  private spawnAlly(enemy: string): Fighter {
     const e = enemyDef(enemy);
     const { fighter, brain } = spawnEnemy({
       enemy,
@@ -385,6 +402,7 @@ export class Stage extends Phaser.Scene {
       team: 'ally',
     });
     this.brains.set(fighter, brain);
+    return fighter;
   }
 
   private enemies(): Fighter[] {
@@ -413,6 +431,8 @@ export class Stage extends Phaser.Scene {
     this.screenFx.update(delta);
     this.checkPhases();
     for (const f of this.world.fighters) (f.view as SpriteView).updateStatus(f);
+    this.updateRules(steps);
+    this.updatePickups();
     this.updateState();
     this.hud.update(this.hudState());
     if (this.targetTimer > 0) this.targetTimer--;
@@ -450,7 +470,7 @@ export class Stage extends Phaser.Scene {
     const gain = this.rng.int(def.money[0], def.money[1]);
     if (gain > 0) {
       game.profile.money += gain;
-      this.fx.floatText(`+${gain}`, f.x, f.y - 56, 0xe8c860);
+      this.fx.floatText(`RP ${gain}`, f.x, f.y - 56, 0xe8c860);
       audio.sfx('money');
     }
   }
@@ -510,6 +530,66 @@ export class Stage extends Phaser.Scene {
     }
   }
 
+  /** HP terbawa antar layar, buff makanan, dan lantai HP saat mengulang. */
+  private applyCarryover(screen: ScreenDef): void {
+    if (screen.practice) return;
+    const prof = game.profile;
+    const max = this.player.stats.maxHp;
+    let hp = Math.min(max, prof.hp ?? max);
+    if (this.init0.skipIntro) hp = Math.max(hp, Math.round(max * HP_FLOOR_RATIO));
+    this.player.hp = hp;
+    if (consumeBuffs(prof).kuat) this.player.status.kuat = KUAT_TICKS;
+  }
+
+  private buildPickups(screen: ScreenDef): void {
+    for (const def of screen.pickups ?? []) {
+      if (this.pickupTaken(def)) continue;
+      const sprite = this.add.sprite(def.x, def.y, 'prop:07_CLASSROOM/buku_catatan').setOrigin(0.5, 1).setDepth(def.y - 1);
+      const icon = this.add.sprite(def.x, def.y - 16, 'ui:penanda_misi', 0).setDepth(9500);
+      icon.play('ui:penanda_misi:loop');
+      this.pickups.push({ def, sprite, icon });
+    }
+  }
+
+  private pickupTaken(def: PickupDef): boolean {
+    return def.kind === 'buku' ? game.profile.flags[`item_${def.id}`] === true : game.profile.archives.includes(def.id);
+  }
+
+  private updatePickups(): void {
+    const want = this.interactRequested;
+    this.interactRequested = false;
+    if (!want || this.cutsceneActive || this.pickups.length === 0 || this.state === 'over') return;
+    const p = this.player;
+    const hit = this.pickups.find((k) => Math.abs(k.def.x - p.x) <= 28 && Math.abs(k.def.y - p.y) <= 18);
+    if (!hit) return;
+    this.pickups.splice(this.pickups.indexOf(hit), 1);
+    hit.sprite.destroy();
+    hit.icon.destroy();
+    audio.sfx('archive');
+    if (hit.def.kind === 'buku') {
+      game.profile.flags[`item_${hit.def.id}`] = true;
+      this.fx.floatText('BUKU DIAMBIL', p.x, p.y - 62, 0x86e8a0);
+    } else this.host.giveArchive(hit.def.id);
+  }
+
+  /** Aturan misi: batas waktu, batas terkena, kawalan harus selamat. */
+  private updateRules(steps: number): void {
+    if (this.state !== 'fight' || this.finished) return;
+    const s = this.screenDef;
+    if (Number.isFinite(this.timeLeft) && this.fightStarted) {
+      this.timeLeft -= steps;
+      if (this.timeLeft <= 0) return this.failRule('waktu');
+    }
+    if (s.maxHits !== undefined && this.world.stats.hitsTaken > s.maxHits) return this.failRule('terkena');
+    if (this.escortFighter && (this.escortFighter.dead || this.escortFighter.removed)) this.failRule('kawalan');
+  }
+
+  private failRule(reason: 'waktu' | 'terkena' | 'kawalan'): void {
+    if (this.state === 'over') return;
+    this.state = 'over';
+    this.time.delayedCall(500, () => this.finish(false, reason));
+  }
+
   /** Arena bersih: hentikan skrip tutorial dan bebaskan penantiannya. */
   private endDuring(): void {
     this.duringCtl.cancelled = true;
@@ -526,7 +606,7 @@ export class Stage extends Phaser.Scene {
   }
 
   // ---------- selesai ----------
-  private finish(win: boolean): void {
+  private finish(win: boolean, failReason?: StageResult['failReason']): void {
     if (this.finished) return;
     this.finished = true;
     this.ctl.cancelled = true;
@@ -558,7 +638,11 @@ export class Stage extends Phaser.Scene {
       seconds,
       score,
       rank: rankOf(score),
+      failReason,
     };
+    if (win && !this.screenDef.practice) {
+      game.profile.hp = Math.min(hpMax, hpLeft + Math.round(hpMax * HP_REGEN_RATIO));
+    }
     (window as unknown as { __stageResult?: StageResult }).__stageResult = result;
     this.cameras.main.resetFX();
     if (this.init0.onDone) this.init0.onDone(result, this);
@@ -610,7 +694,20 @@ export class Stage extends Phaser.Scene {
       combo: p.combo,
       statuses,
       target: this.hudTarget(),
+      extra: this.extraText(),
     };
+  }
+
+  private extraText(): string {
+    const s = this.screenDef;
+    const parts: string[] = [];
+    if (Number.isFinite(this.timeLeft)) {
+      const sec = Math.max(0, Math.ceil(this.timeLeft / 60));
+      parts.push(`WAKTU ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`);
+    }
+    if (s.maxHits !== undefined) parts.push(`KENA ${Math.min(this.world.stats.hitsTaken, s.maxHits + 1)}/${s.maxHits}`);
+    if (this.escortFighter) parts.push(`KAWAL ${Math.max(0, Math.ceil(this.escortFighter.hp))}`);
+    return parts.join('  ');
   }
 
   private hudTarget(): HudTarget | null {

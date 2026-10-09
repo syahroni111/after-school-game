@@ -19,16 +19,16 @@ export class Boot extends Phaser.Scene {
     settings.current = saves.loadSettings();
     const params = new URLSearchParams(window.location.search);
     const target = params.get('scene');
-    if (target && this.scene.get(target)) {
-      this.scene.start(target, Object.fromEntries(params));
-      return;
-    }
     if (debug.on && debug.chapter) {
       game.reset();
-      if (runner.jumpTo(debug.chapter, debug.step)) {
+      if (runner.jumpTo(debug.chapter, debug.step) && !target) {
         runner.play(this);
         return;
       }
+    }
+    if (target && this.scene.get(target)) {
+      this.scene.start(target, Object.fromEntries(params));
+      return;
     }
     this.scene.start('Title');
   }

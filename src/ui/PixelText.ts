@@ -1,6 +1,17 @@
 import Phaser from 'phaser';
 import { FONT } from '../data/assetIndex';
-import { LINE_HEIGHT, sanitizeText } from '../util/text';
+import { LINE_HEIGHT, findInvalidChars, sanitizeText } from '../util/text';
+
+/** Saat pengembangan: teks game yang memuat karakter di luar font dilaporkan (jadi spasi di layar). */
+const reported = new Set<string>();
+function warnInvalid(text: string): void {
+  if (!import.meta.env.DEV || reported.has(text)) return;
+  const bad = findInvalidChars(text.toUpperCase());
+  if (bad.length > 0 && !reported.has(text)) {
+    reported.add(text);
+    console.error(`[PixelText] karakter tidak didukung font: ${bad.join(' ')} dalam "${text.slice(0, 40)}"`);
+  }
+}
 
 export const PIXEL_FONT = 'pixel';
 
@@ -33,6 +44,7 @@ const ALIGN = { left: 0, center: 1, right: 2 } as const;
 /** Teks piksel: otomatis kapital, karakter tak dikenal diganti spasi. Posisi akhir dibulatkan. */
 export class PixelText extends Phaser.GameObjects.BitmapText {
   constructor(scene: Phaser.Scene, x: number, y: number, text: string, opts: PixelTextOptions = {}) {
+    warnInvalid(text);
     super(
       scene,
       Math.floor(x),
@@ -48,6 +60,7 @@ export class PixelText extends Phaser.GameObjects.BitmapText {
   }
 
   override setText(value: string | string[]): this {
+    warnInvalid(Array.isArray(value) ? value.join('\n') : String(value));
     const clean = Array.isArray(value) ? value.map(sanitizeText) : sanitizeText(String(value));
     return super.setText(clean);
   }

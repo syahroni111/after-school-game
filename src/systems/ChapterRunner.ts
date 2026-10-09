@@ -7,6 +7,7 @@ import type { StageResult } from '../scenes/Stage';
 import { queueToast } from '../ui/Toast';
 import { debug } from './Debug';
 import { game } from './GameState';
+import { HP_FLOOR_RATIO, startHp } from './Economy';
 import { applyScriptEffects } from './Progression';
 import { betterRank, chapterRank } from './Ranking';
 import { saves } from './SaveSystem';
@@ -45,6 +46,7 @@ export class ChapterRunner {
       this.finishChapter(from, ch);
       return;
     }
+    if (p.step === 0 && !this.retrying) p.hp = startHp(p, HP_FLOOR_RATIO); // awal bab: HP minimal 70%
     from.scene.start('Stage', {
       screen,
       skipIntro: this.retrying,
@@ -109,7 +111,7 @@ export class ChapterRunner {
   private afterChapter(from: Phaser.Scene, ch: ChapterDef): void {
     const hubExists = from.scene.manager.keys.Hub !== undefined;
     if (ch.hub && hubExists) {
-      from.scene.start('Hub');
+      from.scene.start('Hub', { location: 'halaman' });
       return;
     }
     if (!ch.next) {
@@ -130,6 +132,7 @@ export class ChapterRunner {
     }
     // layar sebelum `step` pada bab tujuan
     for (const s of target.screens.slice(0, step)) for (const script of [s.before, s.during, s.after]) if (script) applyScriptEffects(game.profile, script);
+    if (step >= target.screens.length) game.profile.flags[`${chapterId}_selesai`] = true;
     game.profile.chapter = chapterId;
     game.profile.step = step;
     if (debug.money !== undefined) game.profile.money = debug.money;

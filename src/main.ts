@@ -8,7 +8,12 @@ import { DebugMenu } from './scenes/dev/DebugMenu';
 import { GameOver } from './scenes/GameOver';
 import { Pause } from './scenes/Pause';
 import { Result } from './scenes/Result';
+import { Archive } from './scenes/Archive';
 import { Credits } from './scenes/Credits';
+import { Dojo } from './scenes/Dojo';
+import { Hub } from './scenes/Hub';
+import { MapSelect } from './scenes/MapSelect';
+import { Shop } from './scenes/Shop';
 import { MainMenu } from './scenes/MainMenu';
 import { SaveSelect } from './scenes/SaveSelect';
 import { Stage } from './scenes/Stage';
@@ -52,7 +57,7 @@ function start(): void {
 
   input.attach();
   const game = new Phaser.Game(
-    buildGameConfig([Boot, Preload, Title, MainMenu, SaveSelect, Credits, Stage, Pause, Result, GameOver, AnimViewer, CombatSandbox, DebugMenu]),
+    buildGameConfig([Boot, Preload, Title, MainMenu, SaveSelect, Credits, Stage, Pause, Result, GameOver, Hub, MapSelect, Shop, Dojo, Archive, AnimViewer, CombatSandbox, DebugMenu]),
   );
   applyZoom(game, host);
   window.addEventListener('resize', () => applyZoom(game, host));

@@ -23,7 +23,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M4 — Musuh & AI
 - [x] M5 — Stage, transisi, waktu & cuaca, Game Over
 - [x] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
-- [ ] M7 — Hub, Kantin, Dojo, Peta, Arsip
+- [x] M7 — Hub, Kantin, Dojo, Peta, Arsip
 - [ ] M8 — Bab 2 sampai Epilog + konten sampingan
 - [ ] M9 — Audio, pengaturan, polish
 - [ ] M10 — Rilis itch.io
@@ -122,6 +122,19 @@ Keputusan M6:
 - **Cerita**: Raka murid pindahan (alasan pemain belajar sejarah tiga sekolah dari Laras dan Pak Hendra); Dimas sahabat sejak SMP; Jaka mengutip "kata Bang Haris, North Hall yang memulai" (benih manipulasi); Rendy menyebut "disuruh senior". Piala bernama PIALA PANJI (dipakai Bab 2).
 - **Simpan**: `afterschool.save.v1.{0,1,2}` + `afterschool.settings.v1`; akses dibungkus try/catch; jika `localStorage` tak tersedia game jalan tanpa slot dan menampilkan "TIDAK BISA MENYIMPAN". Simpan otomatis di akhir tiap layar dan bab. Data lama dimigrasi/dilengkapi oleh `migrateProfile`; data rusak/versi lebih baru ditolak tanpa crash.
 - **Cheat debug** (`?debug=1`): `god=1` (kebal), `fast=1` (dialog dan gerak cutscene cepat), `power=N` (damage pemain ×N), `chapter=ch02&step=0` (lompat; efek bab dilewati diterapkan oleh `applyScriptEffects`), `money=N`.
+
+## M7 — selesai
+Rencana: `Profile` (HP terbawa, buff, lokasi hub), `Economy` murni (beli makanan/jurus, HP antar layar), data `items`, `dojo`, `hub` (9 lokasi, NPC bertingkat menurut progres), `archives` (12 halaman), `sidequests` (6 misi, dipakai M8); scene `Hub`, `MapSelect`, `Shop`, `Dojo`, `Archive`; `Stage` mendukung `free`, `practice`, `pickups`, `timeLimit`, `maxHits`, `escort`.
+- [x] Membeli makanan/jurus mengubah statistik/kemampuan dan **tersimpan** (e2e: `Shop` dengan slot 0 → `localStorage` berisi bonus Kekuatan dan uang terkini; `Dojo`: Pukulan Badan terbeli, Maju Selangkah ditolak karena terkunci, latih tanding memberi Rp 750 sekali dan tidak mengubah HP terbawa). Test `economy.test.ts` (13 kasus). Total unit 197 lulus.
+- [x] Hub: jalan bebas, NPC dari kelompok A/C/D dengan idle bergantian, Interaksi (E/Enter) memicu dialog berpotret, titik interaksi Kantin, NPC Gilang → Dojo, menu jeda (peta, ganti karakter, arsip, pengaturan, simpan, keluar), keluar ke kanan = Peta. Screenshot `M7_hub_halaman/dialog/menu.png`, `M7_peta.png`, `M7_kantin.png`, `M7_dojo.png`, `M7_arsip.png`.
+- [x] Validator memeriksa data hub (karakter, animasi, posisi, percakapan bawaan, syarat bab), misi, Kantin/Dojo, dan arsip (teks, ≤ 4 baris × 46 karakter). Karakter yang tidak ada di font (mis. `+`, `(`) tertangkap oleh validator dan oleh peringatan DEV di `PixelText`; semuanya diganti ("NAIK 1", "PULIH 15", "- DI SINI").
+
+Keputusan M7:
+- **HP terbawa antar layar** (GDD §6 mensyaratkan makanan memulihkan HP): `profile.hp` dibawa; menang di layar memulihkan +25% HP maks; awal bab dan mengulang setelah kalah memberi lantai 70% (tidak ada macet total); Susu Kotak = buff Kuat 20 detik untuk layar berikutnya. Latih tanding: HP penuh dan tidak dibawa.
+- **Karakter pilihan hanya untuk konten bebas** (misi sampingan, latih tanding, Mode Bebas; `ScreenDef.free`). Layar cerita selalu Raka karena dialog dan potret memakai Raka.
+- **Peta**: `panel_peta` punya label tercetak untuk 6 area (KELAS, LAB, GYM, TAMAN, KANTIN, ATAP) yang tidak cocok dengan 9 lokasi hub, jadi Peta memakai `panel_9slice` dan daftar lokasi (terkunci tampil ???). Tombol `tombol_*` dan `menu_jeda` juga bergambar teks tetap, sehingga menu memakai `Menu` teks.
+- Jurus Dojo dibuka lewat flag selesai-bab: Pukulan Badan setelah Bab 1 (4.000), Maju Selangkah setelah Bab 2 (6.000), Kombo Finisher Ganda setelah Bab 3 (12.000); Tangkis+Serangan Balik (Bab 1) dan Dorongan Semangat (Bab 6) gratis dari cerita.
+- Dialog yang ditutup dengan Enter tidak langsung membuka percakapan baru (jeda 350 ms); `InputManager` menggabungkan penekanan tombol yang sama dalam satu frame (test memberi jeda).
 
 ## Masalah terbuka
 - (belum ada)

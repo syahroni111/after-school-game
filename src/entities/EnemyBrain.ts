@@ -77,7 +77,7 @@ export class EnemyBrain {
     const foe = world.nearestFoe(self);
     if (!foe || self.dead) {
       this.dropToken(self);
-      return IDLE_INTENT;
+      return self.team === 'ally' && !self.dead ? this.followPlayer(self, world) : IDLE_INTENT;
     }
     if (self.entering !== 0) return IDLE_INTENT;
     const st = self.state;
@@ -112,6 +112,16 @@ export class EnemyBrain {
     if (this.mode === 'attack') return this.attackStep(self, foe, face);
     if (this.mode === 'approach') return this.approach(self, foe, dx, dy, face);
     return this.circle(self, foe, face);
+  }
+
+  /** Sekutu tanpa lawan di layar: mengikuti pemain (dipakai misi kawalan). */
+  private followPlayer(self: Fighter, world: CombatWorld): Intent {
+    const player = world.fighters.find((f) => f.team === 'player' && !f.dead);
+    if (!player || self.entering !== 0 || !self.canAct) return IDLE_INTENT;
+    const dx = player.x - self.x;
+    const face = (dx >= 0 ? 1 : -1) as 1 | -1;
+    const tx = player.x - face * 52;
+    return { ...IDLE_INTENT, face, ...this.moveToward(self, tx, player.y, 14, 4) };
   }
 
   // ---------- reaksi terhadap serangan lawan ----------

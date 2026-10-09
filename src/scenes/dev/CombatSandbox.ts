@@ -58,10 +58,10 @@ export class CombatSandbox extends Phaser.Scene {
       this,
       4,
       LOGICAL_H - 20,
-      'WASD GERAK  J PUKUL  K BERAT  L TAHAN  SPASI HINDAR  I/J+K JURUS',
+      'WASD GERAK  J PUKUL  K BERAT  L TAHAN  SPASI HINDAR  I/J DAN K JURUS',
       { color: 0xffffff },
     ).setDepth(30000);
-    new PixelText(this, 4, LOGICAL_H - 10, 'T MODE BONEKA  R ULANG  H KOTAK  2X MAJU = LARI', {
+    new PixelText(this, 4, LOGICAL_H - 10, 'T MODE BONEKA  R ULANG  H KOTAK  2X MAJU LARI', {
       color: 0xffffff,
     }).setDepth(30000);
 
@@ -137,7 +137,7 @@ export class CombatSandbox extends Phaser.Scene {
     const p = this.player;
     const d = this.dummy;
     this.hud.setText(
-      `RAKA ${p.state.toUpperCase()} ${p.animName}\nHP ${Math.ceil(p.hp)}${p.tempHp ? `+${p.tempHp}` : ''}  STA ${Math.floor(p.stamina)}  KOMBO ${p.combo}\nBONEKA ${this.dummyMode.toUpperCase()}  ${d.state.toUpperCase()}  HP ${Math.ceil(d.hp)}`,
+      `RAKA ${p.state.toUpperCase()} ${p.animName.replace(/_/g, ' ')}\nHP ${Math.ceil(p.hp)}${p.tempHp ? ` DAN ${p.tempHp}` : ""}  STA ${Math.floor(p.stamina)}  KOMBO ${p.combo}\nBONEKA ${this.dummyMode.toUpperCase()}  ${d.state.toUpperCase()}  HP ${Math.ceil(d.hp)}`,
     );
   }
 

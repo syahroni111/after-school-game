@@ -182,7 +182,7 @@ export class AnimViewer extends Phaser.Scene {
     if (timing) fl.push(`ROOT ${timing.rootMotion}`);
     this.flags.setText(fl.join('  '));
     this.info.setText(
-      `${this.chars[this.charIdx]}\n${anim}\nFRAME ${this.frameIdx}/${list.length - 1}  SHEET ${list[this.frameIdx] ?? 0}\n${this.playing ? 'PUTAR' : 'JEDA'}  ${this.flip ? 'KIRI' : 'KANAN'}`,
+      `${(this.chars[this.charIdx] ?? '').replace(/_/g, ' ')}\n${anim.replace(/_/g, ' ')}\nFRAME ${this.frameIdx}/${list.length - 1}  SHEET ${list[this.frameIdx] ?? 0}\n${this.playing ? 'PUTAR' : 'JEDA'}  ${this.flip ? 'KIRI' : 'KANAN'}`,
     );
   }
 }

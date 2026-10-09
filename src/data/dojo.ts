@@ -13,10 +13,10 @@ export interface DojoMove {
 }
 
 export const DOJO_MOVES: readonly DojoMove[] = [
-  { id: 'counter', label: 'TANGKIS + SERANGAN BALIK', price: 0, storyOnly: true, desc: 'TEKAN L TEPAT SEBELUM KENA, LALU J' },
-  { id: 'badan', label: 'PUKULAN BADAN', price: 4000, requires: 'ch01_selesai', desc: 'ARAH BELAKANG + J. MEMECAH PERTAHANAN' },
+  { id: 'counter', label: 'TANGKIS DAN SERANGAN BALIK', price: 0, storyOnly: true, desc: 'TEKAN L TEPAT SEBELUM KENA, LALU J' },
+  { id: 'badan', label: 'PUKULAN BADAN', price: 4000, requires: 'ch01_selesai', desc: 'ARAH BELAKANG LALU J. MEMECAH PERTAHANAN' },
   { id: 'dash', label: 'MAJU SELANGKAH', price: 6000, requires: 'ch02_selesai', desc: 'TEKAN ARAH DEPAN DUA KALI, LALU J' },
-  { id: 'push', label: 'DORONGAN SEMANGAT', price: 0, storyOnly: true, desc: 'J + K. MEMAKAI 12 HP SEMENTARA' },
+  { id: 'push', label: 'DORONGAN SEMANGAT', price: 0, storyOnly: true, desc: 'J DAN K BERSAMAAN. MEMAKAI 12 HP SEMENTARA' },
   { id: 'double', label: 'KOMBO FINISHER GANDA', price: 12000, requires: 'ch03_selesai', desc: 'PUKULAN BERAT DUA KALI DI UJUNG KOMBO' },
 ];
 

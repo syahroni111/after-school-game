@@ -107,10 +107,10 @@ test('M6: Prolog dan Bab 1 dimainkan sampai tamat bab dan tersimpan (bot, cheat 
       if (shots < 3) await page.screenshot({ path: `docs/screens/M6_result_${shots++}.png` });
       await page.keyboard.press('Enter');
       await page.waitForTimeout(400);
-      if ((await activeScenes(page)).includes('MainMenu')) break;
+      if ((await activeScenes(page)).some((x) => x === 'Hub' || x === 'MainMenu')) break;
       continue;
     }
-    if (scenes.includes('MainMenu')) break;
+    if (scenes.includes('MainMenu') || scenes.includes('Hub')) break;
     if (!scenes.includes('Stage')) {
       await page.waitForTimeout(100);
       continue;
@@ -148,7 +148,7 @@ test('M6: Prolog dan Bab 1 dimainkan sampai tamat bab dan tersimpan (bot, cheat 
   for (const c of [...held]) await hold(c, false);
 
   expect(seen.has('Result')).toBe(true);
-  expect(await activeScenes(page)).toContain('MainMenu');
+  expect(await activeScenes(page)).toContain('Hub'); // bab 1 berakhir di Waktu Bebas
   const save = await page.evaluate(() => JSON.parse(localStorage.getItem('afterschool.save.v1.0') ?? 'null'));
   expect(save?.profile.chapter).toBe('ch02'); // Bab 1 selesai -> bab berikutnya
   expect(save?.profile.step).toBe(0);

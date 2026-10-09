@@ -315,6 +315,18 @@ export const ENEMIES: Readonly<Record<string, EnemyDef>> = Object.fromEntries(
         money: [8000, 8000],
       }),
       grunt({
+        id: 'gilang', charKey: 'A07_petarung_bertahan', name: 'GILANG', school: 'north', style: 'tank', hp: 120, power: 0.85, defense: 2, speed: 0.95, guardChance: 0.4, parrySkill: 0.3, cooldown: [60, 100], boss: true,
+        plans: [{ steps: ['light', 'light'], weight: 3 }, { steps: ['heavy'], weight: 2 }], money: [0, 0],
+      }),
+      grunt({
+        id: 'bima', charKey: 'A04_murid_atletis', name: 'BIMA', school: 'north', style: 'campuran', hp: 110, power: 0.85, dodgeChance: 0.25, cooldown: [45, 85], boss: true,
+        plans: [{ steps: ['light', 'light', 'light'], weight: 3 }, { steps: ['dash', 'light'], weight: 2 }, { steps: ['heavy'], weight: 1 }], money: [0, 0],
+      }),
+      grunt({
+        id: 'tiara', charKey: 'A06_murid_enerjik', name: 'TIARA', school: 'north', style: 'cepat', hp: 70, power: 0.7, speed: 1.05, guardChance: 0.15, cooldown: [60, 110], ring: 70,
+        plans: [{ steps: ['light'], weight: 3 }, { steps: ['light', 'light'], weight: 1 }], money: [0, 0],
+      }),
+      grunt({
         id: 'senior_lama',
         charKey: 'B07_senior_mengintimidasi',
         name: 'SENIOR ANGKATAN LAMA',

@@ -13,3 +13,5 @@ class GameState {
 }
 
 export const game = new GameState();
+
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __gs?: GameState }).__gs = game;

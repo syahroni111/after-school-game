@@ -25,14 +25,14 @@ const MAX_TITLE = 30;
 const MAX_HINT = 60;
 const MAX_NAME = 26;
 /** Flag yang dibuat oleh kode game, bukan oleh skrip. */
-const SYSTEM_FLAG = /^(loc_|dojo_|shop_|quest_|arsip_)/;
+const SYSTEM_FLAG = /^(loc_|dojo_|shop_|quest_|arsip_|item_|sparring_|ch\d\d_selesai$)/;
 
 export interface FlagUse {
   set: Set<string>;
   read: Set<string>;
 }
 
-function checkText(text: string, where: string, errs: string[]): void {
+export function checkText(text: string, where: string, errs: string[]): void {
   const bad = findInvalidChars(text);
   if (bad.length) errs.push(`${where}: karakter tidak didukung font: ${bad.map((c) => JSON.stringify(c)).join(' ')} dalam "${text.slice(0, 40)}"`);
 }

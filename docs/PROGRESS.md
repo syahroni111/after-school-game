@@ -17,7 +17,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 
 ## Milestone
 - [x] M0 — Fondasi proyek
-- [ ] M1 — Pipeline aset
+- [x] M1 — Pipeline aset
 - [ ] M2 — Penampil animasi & teks piksel
 - [ ] M3 — Pemain & pertarungan inti
 - [ ] M4 — Musuh & AI
@@ -41,6 +41,18 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 Rencana: scaffolding Vite+TS strict+Phaser, zoom bulat, scene Boot, ESLint/Prettier/Vitest/Playwright.
 - [x] `npm run dev` menampilkan canvas 480×270 dengan zoom bulat (screenshot `docs/screens/M0_boot.png`, zoom ×2 di 960×540).
 - [x] `npm run check` lulus (typecheck, lint, 3 test, validate stub); `npm run build` dan `npm run test:e2e` lulus.
+
+## M1 — selesai
+Rencana: `prepare-assets` (deteksi metadata, salin selektif, manifest), `validate-content` v1, scene Preload (progress bar + animasi dari indeks manifest), test unit manifest.
+- [x] Disalin **245 file** (inti tanpa properti: 234; ≈240 sesuai ROADMAP) ke `public/assets`; manifest 131 spritesheet + 114 gambar. Tidak ada peringatan ukuran PNG vs metadata.
+- [x] E2E: tidak ada 404 dan tidak ada error konsol; screenshot `docs/screens/M1_assets.png` (stage halaman + Raka, kaki di titik y=220, piksel tajam).
+- [x] Test unit: `A01_protagonis:pukulan_kait` = 10 frame; `D01_guru` tidak punya `pukulan_cepat`; kelompok C tanpa pukulan; 23 karakter, 22 stage; tidak ada tabrakan key animasi; semua indeks frame valid.
+
+Keputusan M1:
+- Tile 06 (`aspal`, `rumput`, dst.) tidak disalin: stage sudah dilukis penuh dan tile tidak dipakai (hemat 16 file). Properti disalin lewat daftar putih `PROPS` di `prepare-assets.mjs` (hanya yang dipakai; tambah bila perlu). Formasi NPC: hanya versi `_transparan`. Sampul: hanya 240×135 dan 320×180 (1920×1080 untuk halaman itch, dipakai skrip rilis dari sumber).
+- Key animasi karakter semua sheet: `{charKey}:{anim}` (tidak ada tabrakan antar sheet, diuji). Sheet lain: `{sheetKey}:{anim}` (mis. `fx:impact_kecil:main`, `ui:penanda_tujuan:loop`). Sheet `_ekspresi` tidak punya `origin` di metadata; kode memakai default (32,59).
+- `validate-content.mjs` memuat modul TS lewat Vite SSR (`ssrLoadModule`), jadi validator murni di `src/` bisa dipakai bersama oleh skrip dan Vitest. Pemeriksaan huruf besar-kecil memakai `readdirSync` (Windows tidak membedakan).
+- Cuaca: file `13_WEATHER/{stage}_{cuaca}.png` → key `stage:{stage}:{cuaca}`; overlay hujan = sheet 4 frame vertikal, key `fx:overlay_hujan`.
 
 ## Masalah terbuka
 - (belum ada)

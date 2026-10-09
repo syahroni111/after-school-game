@@ -81,7 +81,14 @@ export class EnemyBrain {
     }
     if (self.entering !== 0) return IDLE_INTENT;
     const st = self.state;
-    if (st === 'hitstun' || st === 'knockback' || st === 'down' || st === 'dizzy' || st === 'ko' || st === 'getup') {
+    if (
+      st === 'hitstun' ||
+      st === 'knockback' ||
+      st === 'down' ||
+      st === 'dizzy' ||
+      st === 'ko' ||
+      st === 'getup'
+    ) {
       if (this.mode !== 'circle') this.dropToken(self);
       this.pending = null;
       return IDLE_INTENT;
@@ -117,9 +124,12 @@ export class EnemyBrain {
         const r = this.deps.rng.next();
         const d = this.def;
         this.pending =
-          r < d.parrySkill ? { kind: 'parry', key: threat.key }
-            : r < d.parrySkill + d.guardChance ? { kind: 'guard', key: threat.key }
-              : r < d.parrySkill + d.guardChance + d.dodgeChance ? { kind: 'dodge', key: threat.key }
+          r < d.parrySkill
+            ? { kind: 'parry', key: threat.key }
+            : r < d.parrySkill + d.guardChance
+              ? { kind: 'guard', key: threat.key }
+              : r < d.parrySkill + d.guardChance + d.dodgeChance
+                ? { kind: 'dodge', key: threat.key }
                 : null;
       }
       const p = this.pending;
@@ -129,7 +139,7 @@ export class EnemyBrain {
         if (p.kind === 'dodge' && threat.ticksToActive <= 8) {
           this.pending = null;
           this.dropToken(self);
-          return { ...IDLE_INTENT, face, presses: ['dodge'], moveX: (-face) as -1 | 1 };
+          return { ...IDLE_INTENT, face, presses: ['dodge'], moveX: -face as -1 | 1 };
         }
       }
     }
@@ -163,7 +173,7 @@ export class EnemyBrain {
     if (now >= this.nextThink) {
       this.nextThink = now + this.deps.rng.int(45, 100);
       this.yOff = this.deps.rng.int(-36, 36);
-      if (this.deps.rng.chance(0.25)) this.slotSide = (-this.slotSide) as -1 | 1;
+      if (this.deps.rng.chance(0.25)) this.slotSide = -this.slotSide as -1 | 1;
     }
     if (now >= this.nextAttackAt && this.requestToken(self)) {
       this.mode = 'approach';
@@ -202,7 +212,7 @@ export class EnemyBrain {
     }
     const first = this.plan[0];
     if (first === 'dash') {
-      if (Math.abs(dx) < DASH_MIN_DIST) return { ...IDLE_INTENT, face, moveX: (-face) as -1 | 1 }; // ambil jarak dulu
+      if (Math.abs(dx) < DASH_MIN_DIST) return { ...IDLE_INTENT, face, moveX: -face as -1 | 1 }; // ambil jarak dulu
       this.mode = 'attack';
       this.planIdx = 1;
       this.dashed = true;
@@ -255,7 +265,13 @@ export class EnemyBrain {
     if (self.sm.state === 'attack' && self.move) {
       const cancel = FRAME_DATA[self.move.anim]?.cancelFrom;
       const next = this.plan[this.planIdx];
-      if (next && next !== 'dash' && cancel !== undefined && self.animFrame >= cancel - 1 && MOVES[self.move.id].reaction === 'stagger') {
+      if (
+        next &&
+        next !== 'dash' &&
+        cancel !== undefined &&
+        self.animFrame >= cancel - 1 &&
+        MOVES[self.move.id].reaction === 'stagger'
+      ) {
         this.planIdx++;
         if (next === 'heavy' || next === 'special') this.deps.emitTelegraph(self.x, self.y - 56);
         return { ...base, presses: [next] };
@@ -264,7 +280,13 @@ export class EnemyBrain {
     return base;
   }
 
-  private moveToward(self: Fighter, tx: number, ty: number, dzX: number, dzY: number): Pick<Intent, 'moveX' | 'moveY'> {
+  private moveToward(
+    self: Fighter,
+    tx: number,
+    ty: number,
+    dzX: number,
+    dzY: number,
+  ): Pick<Intent, 'moveX' | 'moveY'> {
     const ddx = tx - self.x;
     const ddy = ty - self.y;
     return {

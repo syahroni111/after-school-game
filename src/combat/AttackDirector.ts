@@ -52,7 +52,13 @@ export const RING_MIN = 70;
 export const RING_MAX = 110;
 
 /** Posisi mengitari: sisi kiri/kanan bergantian, jarak dan offset kedalaman tersebar agar tidak menumpuk. */
-export function ringSlot(index: number, count: number, foeX: number, foeY: number, bounds: { minY: number; maxY: number }): { x: number; y: number } {
+export function ringSlot(
+  index: number,
+  count: number,
+  foeX: number,
+  foeY: number,
+  bounds: { minY: number; maxY: number },
+): { x: number; y: number } {
   const side = index % 2 === 0 ? -1 : 1;
   const ring = Math.floor(index / 2);
   const dist = RING_MIN + ((ring * 22) % (RING_MAX - RING_MIN + 1));

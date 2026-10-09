@@ -54,12 +54,15 @@ describe('AttackDirector', () => {
       expect(s.y).toBeGreaterThanOrEqual(160);
       expect(s.y).toBeLessThanOrEqual(266);
     }
-    expect(Math.sign(ringSlot(0, 4, 240, 220, b).x - 240)).not.toBe(Math.sign(ringSlot(1, 4, 240, 220, b).x - 240));
+    expect(Math.sign(ringSlot(0, 4, 240, 220, b).x - 240)).not.toBe(
+      Math.sign(ringSlot(1, 4, 240, 220, b).x - 240),
+    );
   });
 });
 
 describe('WaveDirector', () => {
-  const grunts = (n: number): SpawnDef[] => Array.from({ length: n }, (_, i) => ({ enemy: 'cepat', side: i % 2 ? 'left' : 'right', delay: 0 }));
+  const grunts = (n: number): SpawnDef[] =>
+    Array.from({ length: n }, (_, i) => ({ enemy: 'cepat', side: i % 2 ? 'left' : 'right', delay: 0 }));
 
   it('tidak pernah melebihi batas musuh di layar', () => {
     const w = new WaveDirector(grunts(10));
@@ -102,7 +105,16 @@ describe('WaveDirector', () => {
 describe('data musuh', () => {
   it('semua musuh punya sprite dengan animasi tempur lengkap', () => {
     for (const d of Object.values(ENEMIES)) {
-      for (const a of ['pukulan_cepat', 'pukulan_berat', 'tangkis', 'terhuyung', 'jatuh', 'bangkit', 'jalan_tempur', 'jalan_samping'])
+      for (const a of [
+        'pukulan_cepat',
+        'pukulan_berat',
+        'tangkis',
+        'terhuyung',
+        'jatuh',
+        'bangkit',
+        'jalan_tempur',
+        'jalan_samping',
+      ])
         expect(hasCharAnim(d.charKey, a), `${d.id}:${a}`).toBe(true);
       expect(d.plans.length).toBeGreaterThan(0);
       expect(d.cooldown[0]).toBeLessThanOrEqual(d.cooldown[1]);
@@ -127,7 +139,18 @@ describe('simulasi 4 musuh melawan pemain', () => {
     const director = new AttackDirector(diff.tokens);
     const player = mkFighter(world, 'player', 'p', 240, 215, { maxHp: 1_000_000 });
     const enemies = ['cepat', 'agresif', 'dash', 'tank'].map((id, i) =>
-      spawnEnemy({ enemy: id, world, director, diff, x: 80 + i * 120, y: 190 + i * 14, rng, slotIndex: i, view: NullView, id: `e${i}` }),
+      spawnEnemy({
+        enemy: id,
+        world,
+        director,
+        diff,
+        x: 80 + i * 120,
+        y: 190 + i * 14,
+        rng,
+        slotIndex: i,
+        view: NullView,
+        id: `e${i}`,
+      }),
     );
     return { world, director, player, enemies, diff };
   }

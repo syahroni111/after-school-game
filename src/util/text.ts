@@ -64,3 +64,6 @@ export function formatMoney(n: number): string {
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 }
+
+/** Nama tampilan stage: gerbang_utama -> GERBANG UTAMA. */
+export const stageLabel = (id: string): string => id.replace(/_/g, ' ').toUpperCase();

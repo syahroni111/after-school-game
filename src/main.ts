@@ -4,6 +4,10 @@ import { Boot } from './scenes/Boot';
 import { Preload } from './scenes/Preload';
 import { AnimViewer } from './scenes/dev/AnimViewer';
 import { CombatSandbox } from './scenes/dev/CombatSandbox';
+import { DebugMenu } from './scenes/dev/DebugMenu';
+import { GameOver } from './scenes/GameOver';
+import { Pause } from './scenes/Pause';
+import { Result } from './scenes/Result';
 import { Stage } from './scenes/Stage';
 import { input } from './systems/InputManager';
 
@@ -43,7 +47,9 @@ function start(): void {
   });
 
   input.attach();
-  const game = new Phaser.Game(buildGameConfig([Boot, Preload, AnimViewer, CombatSandbox, Stage]));
+  const game = new Phaser.Game(
+    buildGameConfig([Boot, Preload, AnimViewer, CombatSandbox, DebugMenu, Stage, Pause, Result, GameOver]),
+  );
   applyZoom(game, host);
   window.addEventListener('resize', () => applyZoom(game, host));
   document.addEventListener('fullscreenchange', () => applyZoom(game, host));

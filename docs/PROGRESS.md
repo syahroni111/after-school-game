@@ -21,7 +21,7 @@ Log kerja pengembang. Diperbarui di awal dan akhir setiap milestone.
 - [x] M2 — Penampil animasi & teks piksel
 - [x] M3 — Pemain & pertarungan inti
 - [x] M4 — Musuh & AI
-- [ ] M5 — Stage, transisi, waktu & cuaca, Game Over
+- [x] M5 — Stage, transisi, waktu & cuaca, Game Over
 - [ ] M6 — Cerita: dialog, cutscene, Prolog & Bab 1
 - [ ] M7 — Hub, Kantin, Dojo, Peta, Arsip
 - [ ] M8 — Bab 2 sampai Epilog + konten sampingan
@@ -93,6 +93,20 @@ Keputusan M4:
 - Bos: HP bos selalu tampil di panel kanan; kroco menampilkan bar sesaat setelah dipukul. Fase bos (Arga marah, Haris memanggil suruhan dan gelap) ada di data `phases` dan diproses `Stage.checkPhases`.
 - Stage sementara menampilkan overlay MENANG/KALAH/JEDA berlatar gelap. Layar Hasil, Jeda, dan Game Over penuh ada di M5.
 - KO dihitung saat pukulan penentu (`stats.kos`), bukan saat musuh selesai berbaring.
+
+## M5 — selesai
+Rencana: `TimeWeather` (pilih gambar latar/tint/hujan), `Backdrop` (latar + dekorasi + burung + hujan + sepia), `Ranking`, `ui/Menu` + `Panel`, scene `Pause`, `Result`, `GameOver`, `dev/DebugMenu`; `Stage` memakai semuanya.
+- [x] Semua 22 stage terbuka dari menu debug / `?scene=Stage&stage=ID&weather=…` tanpa 404 dan tanpa error konsol (e2e membuka satu per satu).
+- [x] Screenshot kombinasi cuaca/waktu: `M5_halaman_cerah/hujan/sore.png`, `M5_lapangan_basket_malam.png`, `M5_lorong_utama_malam.png` (tint biru 45% karena tanpa gambar varian), `M5_gang_belakang_hujan.png`, `M5_atap_berawan.png`. Juga `M5_pause.png`, `M5_result.png`, `M5_gameover.png`, `M5_debugmenu.png`.
+- [x] Ranking dihitung fungsi murni `Ranking.ts` (skor dari damage, kombo, waktu vs waktu acuan, HP tersisa, jumlah kena; batas S ≥ 2300, A ≥ 1700, B ≥ 1100) dengan 8 test. Total unit 144 lulus.
+
+Keputusan M5:
+- **Dekorasi beranimasi** dipasang tepat di atas elemen lukisan (koordinat diukur dengan mencocokkan piksel sprite ke gambar stage: bendera halaman (220,56) skor 1.00, pohon halaman (34,72) dan (364,72), pohon gerbang_utama (−6,92) dan (414,92), pohon gerbang_sekolah (104,68), strip neon di (40/160/280/400, 14), riak genangan di atas genangan yang sudah dilukis pada varian hujan). Efek hanya dipasang pada gambar dasar/cerah (varian cuaca memiliki warna lukisan berbeda).
+- **`tirai_bergerak` dan `hujan_di_jendela` tidak dipakai**: ukuran sprite (48×56) tidak sama dengan jendela yang dilukis di stage (±64×68, kelas dan lorong), jadi menimpa akan terlihat jendela di dalam jendela. Hujan di interior sudah tergambar pada `ruang_kelas_hujan`. Dicatat sebagai penyimpangan dari GDD §9. `bendera_berkibar` di gerbang_utama/lapangan_olahraga juga tidak dipasang karena stage itu tidak punya tiang bendera. Burung melintas di stage luar saat cerah/berawan/sore.
+- Stage tanpa varian cuaca memakai overlay warna sesuai GDD §9 (sore oranye 18%, malam biru gelap 45%; berawan/hujan ditambah tint ringan) dan overlay hujan beranimasi (`fx:overlay_hujan`, alpha 0,55) untuk cuaca hujan.
+- Filter sepia (Bab 5) = `postFX.addColorMatrix().sepia()` di WebGL, fallback overlay cokelat 40% + vinyet; belum dipakai sampai M8.
+- UI: `Menu` teks dengan kursor `kursor_pilih`, sorotan persegi, dukungan pointer. Aset `tombol_*`, `menu_jeda`, dan `panel_pengaturan` punya teks/knob yang dipanggang di gambar, jadi hanya dipakai bila labelnya cocok (tombol MULAI/LANJUTKAN/SIMPAN/KEMBALI di Title) atau sebagai latar dengan area yang ditimpa; menu lain memakai `panel_9slice`.
+- Callback layar Hasil/Game Over: scene menghentikan dirinya sebelum memanggil callback (ditemukan saat e2e: scene lama tetap aktif di atas scene baru bila tidak dihentikan).
 
 ## Masalah terbuka
 - (belum ada)

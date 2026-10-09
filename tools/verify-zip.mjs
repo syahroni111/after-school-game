@@ -1,3 +1,4 @@
+/* global window, document -- dipakai di dalam page.evaluate (konteks browser) */
 // Menguji zip rilis seperti di itch.io: ekstrak ke folder sementara, sajikan dari SUBFOLDER (path relatif harus tetap bekerja),
 // buka di Chrome lewat Playwright, dan pastikan game sampai ke Title tanpa 404 atau error konsol.
 import AdmZip from 'adm-zip';
